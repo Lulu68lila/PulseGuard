@@ -170,5 +170,20 @@ def status_cmd() -> None:
     )
 
 
+@cli.command("serve")
+@click.option("--host", "-h", default="127.0.0.1", help="Host address to bind the API server.")
+@click.option("--port", "-p", default=48201, type=int, help="Port to bind the API server.")
+def serve_cmd(host: str, port: int) -> None:
+    """Launch the local REST API server for Electron Desktop GUI."""
+    from pulseguard.api.server import PulseGuardAPIServer
+    console.print(f"[bold blue]PulseGuard API Server launching on:[/bold blue] [cyan]http://{host}:{port}[/cyan]")
+    console.print("[dim]Press Ctrl+C to stop server...[/dim]\n")
+    server = PulseGuardAPIServer(host=host, port=port)
+    try:
+        server.start(block=True)
+    except KeyboardInterrupt:
+        console.print("\n[bold yellow]API server stopped by user.[/bold yellow]")
+
+
 if __name__ == "__main__":
     cli()
