@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlparse
 
-from pulseguard.core.models import QuarantineRecord, ScanResult, ScanStatus
+from pulseguard.core.models import QuarantineRecord, ScanResult, ScanStatus, ThreatSeverity
+from pulseguard.engine.ai_scanner import NemotronAIScanner
 from pulseguard.engine.process_scanner import scan_running_processes
 from pulseguard.engine.scanner import ScannerEngine, _default_engine
 from pulseguard.engine.signatures import SignatureDatabase
@@ -29,6 +30,14 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 48201
+
+EXCLUDED_SCAN_PARTS = {
+    ".git", ".svn", ".hg", "node_modules", "target", ".cargo",
+    ".rustup", ".venv", "venv", "__pycache__", ".pgvault",
+    "incremental", "AppData",
+}
+
+_default_ai_scanner = NemotronAIScanner()
 
 
 class ActiveScanTask:
@@ -55,7 +64,7 @@ class ActiveScanTask:
         paths: List[Path],
         scan_type: str = "custom",
         recursive: bool = True,
-        auto_quarantine: bool = True,
+        auto_quarantine: bool = False,
     ) -> None:
         with self.lock:
             if self.is_running:
@@ -83,14 +92,33 @@ class ActiveScanTask:
                     file_targets.append(p)
                 elif p.is_dir():
                     try:
-                        scan_glob = p.glob("**/*" if recursive else "*")
-                        for sub in scan_glob:
-                            if self.should_stop:
-                                break
-                            if sub.is_file():
-                                file_targets.append(sub)
-                                if len(file_targets) >= 2500:
+                        if scan_type == "quick":
+                            # Fast scan: only shallow depth in user directories, skipping heavy caches
+                            for entry in p.iterdir():
+                                if self.should_stop:
                                     break
+                                if entry.name in EXCLUDED_SCAN_PARTS:
+                                    continue
+                                if entry.is_file():
+                                    file_targets.append(entry)
+                                elif entry.is_dir():
+                                    for subentry in entry.iterdir():
+                                        if subentry.is_file():
+                                            file_targets.append(subentry)
+                                            if len(file_targets) >= 400:
+                                                break
+                        else:
+                            scan_glob = p.glob("**/*" if recursive else "*")
+                            for sub in scan_glob:
+                                if self.should_stop:
+                                    break
+                                # Skip build artifacts and system internal caches
+                                if any(part in EXCLUDED_SCAN_PARTS for part in sub.parts):
+                                    continue
+                                if sub.is_file():
+                                    file_targets.append(sub)
+                                    if len(file_targets) >= 2500:
+                                        break
                     except Exception as err:
                         logger.debug("Glob error on %s: %s", p, err)
 
@@ -113,7 +141,13 @@ class ActiveScanTask:
                 if is_inf:
                     with self.lock:
                         self.infected_count += 1
-                    if auto_quarantine and res.threat and item.exists():
+                    # Robust security: Only auto-quarantine verified CRITICAL / HIGH threats
+                    if (
+                        auto_quarantine
+                        and res.threat
+                        and res.threat.severity in (ThreatSeverity.CRITICAL, ThreatSeverity.HIGH)
+                        and item.exists()
+                    ):
                         try:
                             q_rec = quarantine_file(item, res.threat)
                             q_id = q_rec.record_id
@@ -130,6 +164,7 @@ class ActiveScanTask:
                         "is_infected": is_inf,
                         "file_hash": res.file_hash,
                         "threat_name": threat_name,
+                        "severity": res.threat.severity.value if res.threat else None,
                         "scan_duration_ms": res.scan_duration_ms,
                         "quarantine_id": q_id,
                     })
@@ -169,7 +204,7 @@ class APIState:
 
     def __init__(self) -> None:
         self.lock = threading.Lock()
-        self.active_watcher: Optional[FileSystemWatcher] = None
+        self.watcher: Optional[FileSystemWatcher] = None
         self.watched_path: Optional[Path] = None
         self.auto_quarantine_live: bool = False
         self.recent_events: List[Dict[str, Any]] = []
@@ -177,78 +212,70 @@ class APIState:
 
     def set_watcher(self, path: Path, auto_quarantine: bool = False) -> None:
         with self.lock:
-            if self.active_watcher and self.active_watcher.is_running:
-                self.active_watcher.stop()
+            if self.watcher:
+                self.watcher.stop()
+                self.watcher = None
 
-            def on_watcher_event(res: ScanResult, q_rec: Optional[QuarantineRecord]) -> None:
+            def event_callback(result: ScanResult, q_record: Optional[QuarantineRecord]) -> None:
                 with self.lock:
                     self.recent_events.append({
-                        "file_path": str(res.file_path),
-                        "status": res.status.value,
-                        "is_infected": res.is_infected,
-                        "threat_name": res.threat.threat_name if res.threat else None,
-                        "quarantine_id": q_rec.record_id if q_rec else None,
+                        "timestamp": time.time(),
+                        "file_path": str(result.file_path),
+                        "status": result.status.value,
+                        "is_infected": result.is_infected,
+                        "threat_name": result.threat.threat_name if result.threat else None,
+                        "quarantined": q_record is not None,
+                        "record_id": q_record.record_id if q_record else None,
                     })
                     if len(self.recent_events) > 100:
                         self.recent_events.pop(0)
 
+            self.watcher = FileSystemWatcher(
+                watch_paths=[path],
+                recursive=True,
+                auto_quarantine=auto_quarantine,
+                on_event_callback=event_callback,
+            )
             self.watched_path = path
             self.auto_quarantine_live = auto_quarantine
-            self.active_watcher = FileSystemWatcher(
-                watch_paths=[path],
-                auto_quarantine=auto_quarantine,
-                on_event_callback=on_watcher_event,
-            )
-            self.active_watcher.start()
+            self.watcher.start()
 
     def stop_watcher(self) -> None:
         with self.lock:
-            if self.active_watcher and self.active_watcher.is_running:
-                self.active_watcher.stop()
-            self.active_watcher = None
+            if self.watcher:
+                self.watcher.stop()
+                self.watcher = None
             self.watched_path = None
-
-    @property
-    def is_watcher_active(self) -> bool:
-        return self.active_watcher is not None and self.active_watcher.is_running
 
 
 state = APIState()
 
 
 class PulseGuardRequestHandler(BaseHTTPRequestHandler):
-    """Handles HTTP requests from the Electron frontend with CORS."""
+    """HTTP request dispatcher for all local UI endpoints."""
 
-    def _set_cors_headers(self) -> None:
+    def _send_cors_headers(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-    def _send_json_response(self, data: Any, status: int = HTTPStatus.OK) -> None:
-        body = json.dumps(data, indent=2, default=str).encode("utf-8")
+    def _send_json_response(self, data: Any, status: HTTPStatus = HTTPStatus.OK) -> None:
+        body = json.dumps(data, default=str).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        self._set_cors_headers()
+        self._send_cors_headers()
         self.end_headers()
         self.wfile.write(body)
 
     def do_OPTIONS(self) -> None:
-        """Handle CORS pre-flight requests."""
         self.send_response(HTTPStatus.NO_CONTENT)
-        self._set_cors_headers()
+        self._send_cors_headers()
         self.end_headers()
-
-    def _read_json_body(self) -> Dict[str, Any]:
-        content_length = int(self.headers.get("Content-Length", 0))
-        if content_length <= 0:
-            return {}
-        raw = self.rfile.read(content_length).decode("utf-8")
-        return json.loads(raw)
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
-        path = parsed.path.rstrip("/")
+        path = parsed.path
         query = parse_qs(parsed.query)
 
         if path == "/api/status":
@@ -261,16 +288,21 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
             self.handle_get_events()
         elif path == "/api/scan/progress":
             self.handle_get_scan_progress()
+        elif path == "/api/config":
+            self.handle_get_config()
         else:
             self._send_json_response({"error": f"Endpoint not found: {path}"}, status=HTTPStatus.NOT_FOUND)
 
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
-        path = parsed.path.rstrip("/")
+        path = parsed.path
+
+        content_length = int(self.headers.get("Content-Length", 0))
+        post_data = self.rfile.read(content_length) if content_length > 0 else b"{}"
 
         try:
-            body = self._read_json_body()
-        except Exception as exc:
+            body = json.loads(post_data.decode("utf-8")) if post_data else {}
+        except json.JSONDecodeError as exc:
             self._send_json_response({"error": f"Invalid JSON payload: {exc}"}, status=HTTPStatus.BAD_REQUEST)
             return
 
@@ -286,69 +318,83 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
             self.handle_post_quarantine_restore(body)
         elif path == "/api/quarantine/delete":
             self.handle_post_quarantine_delete(body)
+        elif path == "/api/ai/scan":
+            self.handle_post_ai_scan(body)
+        elif path == "/api/ai/test":
+            self.handle_post_ai_test(body)
+        elif path == "/api/config":
+            self.handle_post_config(body)
         else:
             self._send_json_response({"error": f"Endpoint not found: {path}"}, status=HTTPStatus.NOT_FOUND)
 
-    # --- Route Handlers ---
-
     def handle_get_status(self) -> None:
-        db = SignatureDatabase(include_defaults=True)
-        mgr = QuarantineManager()
-        records = list_quarantine()
-        data = {
+        sig_count = _default_engine.signature_db.total_hash_signatures + _default_engine.signature_db.total_byte_patterns
+        quarantine_items = list_quarantine()
+        with state.lock:
+            watcher_active = state.watcher is not None and state.watcher.is_running
+            watched_path = str(state.watched_path) if state.watched_path else None
+
+        self._send_json_response({
             "engine": "ONLINE",
-            "signatures": db.total_hash_signatures + db.total_byte_patterns,
-            "watcher_active": state.is_watcher_active,
-            "watched_path": str(state.watched_path) if state.watched_path else None,
-            "quarantine_count": len(records),
-            "vault_path": str(mgr.vault_dir),
-        }
-        self._send_json_response(data)
+            "signatures": sig_count,
+            "watcher_active": watcher_active,
+            "watched_path": watched_path,
+            "quarantine_count": len(quarantine_items),
+            "vault_path": str(QuarantineManager().vault_dir),
+            "ai_configured": _default_ai_scanner.is_configured(),
+            "ai_model": _default_ai_scanner.model,
+        })
 
     def handle_post_scan(self, body: Dict[str, Any]) -> None:
-        raw_path = body.get("path")
-        if not raw_path:
-            self._send_json_response({"error": "Missing 'path' parameter"}, status=HTTPStatus.BAD_REQUEST)
+        target_path_str = body.get("path")
+        if not target_path_str:
+            self._send_json_response({"error": "Missing required field: 'path'"}, status=HTTPStatus.BAD_REQUEST)
             return
 
-        target = Path(raw_path)
-        recursive = bool(body.get("recursive", True))
-        auto_q = bool(body.get("quarantine", False))
+        target_path = Path(target_path_str)
+        if not target_path.exists():
+            self._send_json_response({"error": f"Path does not exist: {target_path_str}"}, status=HTTPStatus.NOT_FOUND)
+            return
 
-        results_list: List[Dict[str, Any]] = []
+        recursive = bool(body.get("recursive", True))
+        auto_quarantine = bool(body.get("quarantine", False))
+
+        if target_path.is_file():
+            results = [_default_engine.scan_file(target_path)]
+        else:
+            results = _default_engine.scan_directory(target_path, recursive=recursive)
+
+        response_results: List[Dict[str, Any]] = []
         infected_count = 0
 
-        scan_items = [target] if target.is_file() else list(target.glob("**/*" if recursive else "*"))
-        file_targets = [p for p in scan_items if p.is_file()]
-
-        for item in file_targets:
-            res = _default_engine.scan_file(item)
-            is_inf = res.is_infected
-            threat_name = res.threat.threat_name if res.threat else None
+        for r in results:
+            is_inf = r.is_infected
+            threat_name = r.threat.threat_name if r.threat else None
             q_id = None
 
             if is_inf:
                 infected_count += 1
-                if auto_q and res.threat and item.exists():
+                if auto_quarantine and r.threat and r.file_path.exists():
                     try:
-                        q_rec = quarantine_file(item, res.threat)
+                        q_rec = quarantine_file(r.file_path, r.threat)
                         q_id = q_rec.record_id
-                    except Exception as q_exc:
-                        logger.error("Failed to quarantine %s: %s", item, q_exc)
+                    except QuarantineError as q_err:
+                        logger.error("Auto-quarantine failed for %s: %s", r.file_path, q_err)
 
-            results_list.append({
-                "file_path": str(res.file_path),
-                "status": res.status.value,
+            response_results.append({
+                "file_path": str(r.file_path),
+                "status": r.status.value,
                 "is_infected": is_inf,
-                "file_hash": res.file_hash,
+                "file_hash": r.file_hash,
                 "threat_name": threat_name,
-                "scan_duration_ms": res.scan_duration_ms,
+                "severity": r.threat.severity.value if r.threat else None,
+                "scan_duration_ms": r.scan_duration_ms,
                 "quarantine_id": q_id,
             })
 
         self._send_json_response({
-            "results": results_list,
-            "scanned_count": len(results_list),
+            "results": response_results,
+            "scanned_count": len(results),
             "infected_count": infected_count,
         })
 
@@ -356,12 +402,12 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
         scan_type = body.get("scan_type", "custom")
         raw_path = body.get("path")
         recursive = bool(body.get("recursive", True))
-        auto_q = bool(body.get("quarantine", True))
+        auto_q = bool(body.get("quarantine", False))  # Default safe: report first
 
         target_paths: List[Path] = []
         if scan_type == "quick":
             user_home = Path.home()
-            for cand in [user_home / "Downloads", user_home / "Desktop", Path(tempfile.gettempdir())]:
+            for cand in [user_home / "Downloads", user_home / "Desktop"]:
                 if cand.exists():
                     target_paths.append(cand)
         elif scan_type == "system":
@@ -386,107 +432,142 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
     def handle_post_watch_toggle(self, body: Dict[str, Any]) -> None:
         activate = bool(body.get("active", False))
         watch_path_str = body.get("path")
-        auto_q = bool(body.get("quarantine", False))
+        auto_q = bool(body.get("quarantine", True))
 
         if activate:
             if not watch_path_str:
-                self._send_json_response({"error": "Path required to activate watcher"}, status=HTTPStatus.BAD_REQUEST)
+                self._send_json_response({"error": "Missing 'path' to activate watcher"}, status=HTTPStatus.BAD_REQUEST)
                 return
-            target_dir = Path(watch_path_str)
-            if not target_dir.exists() or not target_dir.is_dir():
-                self._send_json_response({"error": f"Invalid directory: {watch_path_str}"}, status=HTTPStatus.BAD_REQUEST)
+            watch_path = Path(watch_path_str)
+            if not watch_path.exists():
+                self._send_json_response({"error": f"Path not found: {watch_path_str}"}, status=HTTPStatus.NOT_FOUND)
                 return
-            state.set_watcher(target_dir, auto_quarantine=auto_q)
+            state.set_watcher(watch_path, auto_quarantine=auto_q)
+            self._send_json_response({"watcher_active": True, "watched_path": str(watch_path)})
         else:
             state.stop_watcher()
-
-        self._send_json_response({
-            "watcher_active": state.is_watcher_active,
-            "watched_path": str(state.watched_path) if state.watched_path else None,
-        })
+            self._send_json_response({"watcher_active": False, "watched_path": None})
 
     def handle_get_quarantine(self) -> None:
         records = list_quarantine()
-        serialized = []
+        out: List[Dict[str, Any]] = []
         for r in records:
-            serialized.append({
+            out.append({
                 "record_id": r.record_id,
                 "original_path": str(r.original_path),
-                "threat_name": r.threat.threat_name,
-                "severity": r.threat.severity.value,
+                "threat_name": r.threat.threat_name if r.threat else "Unknown Threat",
+                "threat_type": r.threat.threat_type if r.threat else "generic",
+                "severity": r.threat.severity.value if r.threat else "HIGH",
                 "quarantined_at": r.quarantined_at.isoformat(),
                 "file_hash": r.file_hash,
                 "is_restored": r.is_restored,
             })
-        self._send_json_response({"records": serialized, "count": len(serialized)})
+        self._send_json_response({"records": out})
 
     def handle_post_quarantine_restore(self, body: Dict[str, Any]) -> None:
         record_id = body.get("record_id")
-        dest = body.get("dest")
+        dest_str = body.get("dest")
         if not record_id:
-            self._send_json_response({"error": "Missing 'record_id' parameter"}, status=HTTPStatus.BAD_REQUEST)
+            self._send_json_response({"error": "Missing 'record_id'"}, status=HTTPStatus.BAD_REQUEST)
             return
 
+        dest = Path(dest_str) if dest_str else None
         try:
-            target_path = Path(dest) if dest else None
-            restored = restore_file(record_id, destination=target_path)
+            restored = restore_file(record_id, destination=dest)
             self._send_json_response({"success": True, "restored_path": str(restored)})
-        except QuarantineError as exc:
-            self._send_json_response({"success": False, "error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+        except QuarantineError as q_err:
+            self._send_json_response({"success": False, "error": str(q_err)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def handle_post_quarantine_delete(self, body: Dict[str, Any]) -> None:
         record_id = body.get("record_id")
         if not record_id:
-            self._send_json_response({"error": "Missing 'record_id' parameter"}, status=HTTPStatus.BAD_REQUEST)
+            self._send_json_response({"error": "Missing 'record_id'"}, status=HTTPStatus.BAD_REQUEST)
             return
 
-        success = delete_quarantine(record_id)
-        if success:
+        try:
+            delete_quarantine(record_id)
             self._send_json_response({"success": True})
-        else:
-            self._send_json_response({"success": False, "error": "Record not found"}, status=HTTPStatus.NOT_FOUND)
+        except QuarantineError as q_err:
+            self._send_json_response({"success": False, "error": str(q_err)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    def handle_get_processes(self, query: Optional[Dict[str, List[str]]] = None) -> None:
-        limit = 30
-        if query and "limit" in query:
-            try:
-                limit = int(query["limit"][0])
-            except ValueError:
-                pass
-
-        procs_list = []
+    def handle_get_processes(self, query: Dict[str, List[str]]) -> None:
+        limit = int(query.get("limit", [50])[0])
+        procs: List[Dict[str, Any]] = []
         infected_count = 0
-        count = 0
-        for p in scan_running_processes():
-            if p.is_infected:
-                infected_count += 1
-            procs_list.append({
-                "pid": p.pid,
-                "name": p.name,
-                "exe_path": str(p.exe_path) if p.exe_path else None,
-                "is_infected": p.is_infected,
-                "threat_name": p.threat.threat_name if p.threat else None,
-            })
-            count += 1
-            if count >= limit:
+
+        for p_res in scan_running_processes():
+            if len(procs) >= limit:
                 break
+            is_inf = p_res.scan_result.is_infected if p_res.scan_result else False
+            if is_inf:
+                infected_count += 1
+            procs.append({
+                "pid": p_res.pid,
+                "name": p_res.name,
+                "exe_path": str(p_res.exe_path) if p_res.exe_path else None,
+                "is_infected": is_inf,
+                "threat_name": (
+                    p_res.scan_result.threat.threat_name
+                    if p_res.scan_result and p_res.scan_result.threat
+                    else None
+                ),
+            })
 
         self._send_json_response({
-            "processes": procs_list,
-            "scanned_count": len(procs_list),
+            "processes": procs,
+            "scanned_count": len(procs),
             "infected_count": infected_count,
         })
 
     def handle_get_events(self) -> None:
         with state.lock:
-            self._send_json_response({"events": list(state.recent_events)})
+            events = list(state.recent_events)
+        self._send_json_response({"events": events})
 
-    def log_message(self, format: str, *args: Any) -> None:
-        pass
+    def handle_get_config(self) -> None:
+        key = _default_ai_scanner.api_key or ""
+        masked = f"{key[:6]}...{key[-4:]}" if len(key) >= 12 else ("Configurée" if key else "")
+        self._send_json_response({
+            "nvidia_api_key_configured": bool(key),
+            "nvidia_api_key_masked": masked,
+            "nvidia_model": _default_ai_scanner.model,
+        })
+
+    def handle_post_config(self, body: Dict[str, Any]) -> None:
+        new_key = body.get("nvidia_api_key")
+        new_model = body.get("nvidia_model")
+        if new_key is not None:
+            _default_ai_scanner.set_api_key(str(new_key))
+        if new_model:
+            _default_ai_scanner.set_model(str(new_model))
+        self._send_json_response({
+            "success": True,
+            "nvidia_api_key_configured": _default_ai_scanner.is_configured(),
+            "nvidia_model": _default_ai_scanner.model,
+        })
+
+    def handle_post_ai_scan(self, body: Dict[str, Any]) -> None:
+        target_path_str = body.get("path")
+        if not target_path_str:
+            self._send_json_response({"error": "Missing required field: 'path'"}, status=HTTPStatus.BAD_REQUEST)
+            return
+
+        target_path = Path(target_path_str)
+        if not target_path.exists():
+            self._send_json_response({"error": f"Fichier introuvable: {target_path_str}"}, status=HTTPStatus.NOT_FOUND)
+            return
+
+        analysis = _default_ai_scanner.analyze_file(target_path)
+        self._send_json_response(analysis)
+
+    def handle_post_ai_test(self, body: Dict[str, Any]) -> None:
+        api_key = body.get("api_key")
+        res = _default_ai_scanner.test_connection(api_key=api_key)
+        self._send_json_response(res)
 
 
 class PulseGuardAPIServer:
-    """Manages the lifecycle of the local REST API server."""
+    """Server lifecycle manager running in a background thread."""
 
     def __init__(self, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT) -> None:
         self.host = host
@@ -496,13 +577,9 @@ class PulseGuardAPIServer:
 
     def start(self, block: bool = False) -> None:
         self.server = ThreadingHTTPServer((self.host, self.port), PulseGuardRequestHandler)
-        logger.info("PulseGuard API server running on http://%s:%d", self.host, self.port)
-
+        logger.info("PulseGuard API Server running on http://%s:%d", self.host, self.port)
         if block:
-            try:
-                self.server.serve_forever()
-            except KeyboardInterrupt:
-                self.stop()
+            self.server.serve_forever()
         else:
             self._thread = threading.Thread(target=self.server.serve_forever, daemon=True)
             self._thread.start()
@@ -512,6 +589,12 @@ class PulseGuardAPIServer:
         if self.server:
             self.server.shutdown()
             self.server.server_close()
-            self.server = None
         state.stop_watcher()
-        logger.info("PulseGuard API server stopped.")
+        logger.info("PulseGuard API Server stopped.")
+
+
+def start_server(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT, block: bool = True) -> PulseGuardAPIServer:
+    """Convenience function to start the REST API server."""
+    server = PulseGuardAPIServer(host=host, port=port)
+    server.start(block=block)
+    return server

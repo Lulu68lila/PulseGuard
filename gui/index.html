@@ -4,55 +4,64 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
-  <title>PulseGuard Endpoint Security</title>
+  <title>PulseGuard Total Security</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="app-window">
-    <!-- Bitdefender Native Integrated Titlebar -->
+    <!-- Bitdefender Style Frameless Integrated Header Bar -->
     <header class="window-titlebar">
       <div class="titlebar-drag">
         <div class="titlebar-brand">
-          <svg class="brand-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+          <div class="brand-red-badge">B</div>
+          <span class="brand-name">Bitdefender<span class="brand-dot">.</span> <span class="brand-sub">Total Security</span></span>
+          <button class="brand-promo-pill" id="btn-promo-pill">Offre disponible <span class="pill-link">En savoir plus &rsaquo;</span></button>
+        </div>
+      </div>
+
+      <div class="titlebar-right">
+        <div class="user-account-badge">
+          <span class="user-label">Mon compte</span>
+          <div class="user-avatar-circle" title="Compte Utilisateur">RP</div>
+        </div>
+        <button class="titlebar-icon-btn" id="btn-top-settings" title="Paramètres">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
-          <span class="brand-name">PulseGuard</span>
-          <span class="brand-badge">TOTAL SECURITY</span>
-        </div>
-      </div>
+        </button>
 
-      <div class="titlebar-telemetry">
-        <div class="telemetry-pill" id="pill-engine-status">
-          <span class="dot-status green"></span>
-          <span class="tag">MOTEUR</span>
-          <span class="val" id="engine-status-text">ONLINE</span>
+        <div class="window-controls">
+          <button class="win-btn win-min" id="ctrl-minimize" title="Réduire">
+            <svg viewBox="0 0 12 12"><path d="M1 6h10" stroke="currentColor" stroke-width="1.3"/></svg>
+          </button>
+          <button class="win-btn win-max" id="ctrl-maximize" title="Agrandir / Restaurer">
+            <svg viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+          </button>
+          <button class="win-btn win-close" id="ctrl-close" title="Fermer">
+            <svg viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.3"/></svg>
+          </button>
         </div>
-        <div class="telemetry-pill">
-          <span class="tag">BASE VIRALE</span>
-          <span class="val" id="top-sig-count">4 SIGNATURES</span>
-        </div>
-      </div>
-
-      <div class="window-controls">
-        <button class="win-btn win-min" id="ctrl-minimize" title="Réduire">
-          <svg viewBox="0 0 12 12"><path d="M1 6h10" stroke="currentColor" stroke-width="1.3"/></svg>
-        </button>
-        <button class="win-btn win-max" id="ctrl-maximize" title="Agrandir / Restaurer">
-          <svg viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
-        </button>
-        <button class="win-btn win-close" id="ctrl-close" title="Fermer PulseGuard">
-          <svg viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.3"/></svg>
-        </button>
       </div>
     </header>
 
-    <!-- Main Workspace -->
+    <!-- Main Body Container -->
     <div class="workspace-body">
       <!-- Bitdefender Slate Sidebar -->
       <nav class="sidebar-nav">
         <div class="sidebar-top">
+          <!-- Big Green Checkmark Shield Badge -->
+          <div class="sidebar-shield-container" id="sidebar-shield-container">
+            <div class="sidebar-shield-icon safe" id="sidebar-shield-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <polyline points="9 12 11 14 15 10"/>
+              </svg>
+            </div>
+          </div>
+
           <ul class="nav-list">
+            <!-- 1. Tableau de bord -->
             <li class="nav-item active" data-tab="dashboard">
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <rect x="3" y="3" width="7" height="7" rx="1"/>
@@ -62,286 +71,379 @@
               </svg>
               <span>Tableau de bord</span>
             </li>
+
+            <!-- 2. Protection -->
             <li class="nav-item" data-tab="protection">
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <polyline points="9 12 11 14 15 10"/>
               </svg>
               <span>Protection</span>
             </li>
-            <li class="nav-item" data-tab="quarantine">
+
+            <!-- 3. Vie privée -->
+            <li class="nav-item" data-tab="privacy">
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
               </svg>
-              <span>Quarantaine</span>
-              <span class="nav-badge" id="nav-quarantine-badge">0</span>
+              <span>Vie privée</span>
             </li>
-            <li class="nav-item" data-tab="processes">
+
+            <!-- 4. Utilitaires -->
+            <li class="nav-item" data-tab="utilities">
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <rect x="4" y="4" width="16" height="16" rx="2"/>
-                <rect x="9" y="9" width="6" height="6"/>
-                <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
               </svg>
-              <span>Audit Mémoire</span>
+              <span>Utilitaires</span>
             </li>
-            <li class="nav-item" data-tab="audit">
+
+            <!-- 5. Notifications -->
+            <li class="nav-item" data-tab="notifications">
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <polyline points="4 17 10 11 4 5"/>
-                <line x1="12" y1="19" x2="20" y2="19"/>
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
               </svg>
-              <span>Événements</span>
+              <span>Notifications</span>
+              <span class="nav-badge" id="nav-notif-badge">3</span>
+            </li>
+
+            <!-- 6. Paramètres -->
+            <li class="nav-item" data-tab="settings">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              <span>Paramètres</span>
             </li>
           </ul>
         </div>
 
         <div class="sidebar-bottom">
-          <div class="device-protect-card">
-            <div class="protect-check-circle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </div>
-            <div class="protect-text-meta">
-              <div class="protect-label" id="sidebar-protect-label">Appareil protégé</div>
-              <div class="protect-sub">Toutes fonctions actives</div>
-            </div>
-          </div>
-          <div class="sidebar-host-id">PC-LUCAS · 127.0.0.1:48201</div>
+          <div class="sidebar-host-id" id="pill-engine-status">MOTEUR ONLINE · Nemotron 550B</div>
         </div>
       </nav>
 
-      <!-- Viewport Area -->
+      <!-- Main Viewport Area -->
       <main class="main-viewport">
 
-        <!-- ================= TAB 1: BITDEFENDER DASHBOARD ================= -->
+        <!-- ================= TAB 1: TABLEAU DE BORD (DASHBOARD - SCREENSHOT 3) ================= -->
         <section class="tab-panel active" id="pane-dashboard">
-          <!-- Big Bitdefender Security Status Banner -->
-          <div class="bitdefender-hero" id="dashboard-hero-card">
-            <div class="hero-icon-container">
-              <div class="hero-check-shield" id="hero-shield-emblem">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  <polyline points="9 12 11 14 15 10"/>
-                </svg>
-              </div>
+          <div class="tab-header-block">
+            <h1 class="main-title">Vous êtes protégé</h1>
+            <p class="main-subtitle">Nous veillons sur votre appareil et vos données.</p>
+          </div>
+
+          <!-- Recommendation Banner (Like Screenshot 3) -->
+          <div class="recommendation-card">
+            <div class="rec-icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
             </div>
-            <div class="hero-text-block">
-              <div class="hero-status-pill protected" id="dashboard-shield-badge">
-                <span class="status-indicator"></span>
-                <span>VOUS ÊTES EN SÉCURITÉ</span>
+            <div class="rec-content">
+              <h3 class="rec-title">Sécurisez vos nouveaux appareils</h3>
+              <p class="rec-desc">Assurez la sécurité de votre réseau et installez Total Security sur tous les nouveaux appareils qui se connectent à votre réseau. Votre abonnement peut protéger d'autres appareils.</p>
+            </div>
+            <div class="rec-actions">
+              <div class="rec-pagination">
+                <button class="pag-btn">&lsaquo;</button>
+                <span class="pag-text">1/3</span>
+                <button class="pag-btn">&rsaquo;</button>
               </div>
-              <h1 class="hero-main-title">Votre appareil est entièrement protégé</h1>
-              <p class="hero-lead-desc">
-                PulseGuard surveille activement vos fichiers, la mémoire vive et intercepte les comportements suspects et ransomwares.
-              </p>
-              <div class="hero-footer-info">
-                <span>Dernière analyse : <strong id="hero-last-scan-time">Aujourd'hui</strong></span>
-                <span class="bullet-sep">•</span>
-                <span>Moteur : <strong style="color:var(--bd-green);">Heuristique Hybride & Empreintes</strong></span>
-              </div>
+              <button class="btn btn-primary" id="btn-sec-device">Sécuriser l'appareil</button>
+              <button class="btn btn-link" id="btn-skip-rec">Pas maintenant</button>
             </div>
           </div>
 
-          <!-- Bitdefender 6 Quick Actions Grid -->
-          <div class="section-heading">ACTIONS RAPIDES DE PROTECTION</div>
-          <div class="bitdefender-grid">
+          <!-- 6 Square Action Cards Grid (3x2 - Screenshot 3) -->
+          <div class="dashboard-square-grid">
             <!-- 1. Analyse Rapide -->
-            <div class="action-card" id="card-action-quick-scan">
-              <div class="card-icon-strip blue">
+            <div class="square-card" id="card-quick-scan">
+              <div class="square-icon blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
                 </svg>
               </div>
-              <div class="card-body-content">
-                <h3 class="card-title">Analyse Rapide</h3>
-                <p class="card-desc">Analyse les emplacements critiques du système (Téléchargements, Temp, Bureau).</p>
-                <button class="btn btn-card-action" id="btn-run-quick-scan">Lancer l'analyse</button>
-              </div>
+              <div class="square-label">Analyse rapide</div>
             </div>
 
-            <!-- 2. Analyse Complète du Système -->
-            <div class="action-card" id="card-action-system-scan">
-              <div class="card-icon-strip emerald">
+            <!-- 2. Analyse du Système -->
+            <div class="square-card" id="card-system-scan">
+              <div class="square-icon indigo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
                   <line x1="8" y1="21" x2="16" y2="21"/>
                   <line x1="12" y1="17" x2="12" y2="21"/>
                 </svg>
               </div>
-              <div class="card-body-content">
-                <h3 class="card-title">Analyse du Système</h3>
-                <p class="card-desc">Scanne l'intégralité du répertoire utilisateur et vérifie l'intégrité de tous les fichiers.</p>
-                <button class="btn btn-card-action" id="btn-run-system-scan">Lancer l'analyse</button>
-              </div>
+              <div class="square-label">Analyse du système</div>
             </div>
 
-            <!-- 3. Analyse Personnalisée -->
-            <div class="action-card" id="card-action-custom-scan">
-              <div class="card-icon-strip purple">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                </svg>
-              </div>
-              <div class="card-body-content">
-                <h3 class="card-title">Analyse Personnalisée</h3>
-                <p class="card-desc">Ciblez un fichier ou un dossier spécifique pour une vérification en profondeur.</p>
-                <button class="btn btn-card-action" id="btn-goto-scanner">Configurer...</button>
-              </div>
-            </div>
-
-            <!-- 4. Protection en Temps Réel -->
-            <div class="action-card">
-              <div class="card-icon-strip cyan">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-              </div>
-              <div class="card-body-content">
-                <div class="card-header-row">
-                  <h3 class="card-title">Sentinelle Temps Réel</h3>
-                  <label class="bitdefender-toggle">
-                    <input type="checkbox" id="dash-watcher-toggle">
-                    <span class="toggle-track"></span>
-                  </label>
-                </div>
-                <p class="card-desc" id="dash-watcher-desc">Surveillance active des écritures disque et debouncing automatique.</p>
-                <span class="card-status-badge" id="dash-watcher-badge">INACTIF</span>
-              </div>
-            </div>
-
-            <!-- 5. Coffre de Quarantaine -->
-            <div class="action-card" id="card-action-quarantine">
-              <div class="card-icon-strip amber">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-              </div>
-              <div class="card-body-content">
-                <h3 class="card-title">Coffre Quarantaine</h3>
-                <p class="card-desc">Objets malveillants isolés sous chiffrement authentifié AES-256-GCM.</p>
-                <div class="card-meta-action">
-                  <span class="card-counter" id="dash-quarantine-count">0 isolés</span>
-                  <button class="btn btn-card-action subtle" id="btn-goto-quarantine">Gérer</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- 6. Audit Mémoire RAM -->
-            <div class="action-card" id="card-action-ram">
-              <div class="card-icon-strip violet">
+            <!-- 3. Analyse IA Nemotron -->
+            <div class="square-card" id="card-ai-scan">
+              <div class="square-icon cyan">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="4" y="4" width="16" height="16" rx="2"/>
                   <rect x="9" y="9" width="6" height="6"/>
-                  <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>
+                  <line x1="9" y1="1" x2="9" y2="4"/>
+                  <line x1="15" y1="1" x2="15" y2="4"/>
+                  <line x1="9" y1="20" x2="9" y2="23"/>
+                  <line x1="15" y1="20" x2="15" y2="23"/>
+                  <line x1="20" y1="9" x2="23" y2="9"/>
+                  <line x1="20" y1="14" x2="23" y2="14"/>
+                  <line x1="1" y1="9" x2="4" y2="9"/>
+                  <line x1="1" y1="14" x2="4" y2="14"/>
                 </svg>
               </div>
-              <div class="card-body-content">
-                <h3 class="card-title">Inspecteur RAM</h3>
-                <p class="card-desc">Analyse les processus en cours d'exécution et détecte les Living-off-the-Land.</p>
-                <button class="btn btn-card-action" id="btn-goto-processes">Vérifier la RAM</button>
-              </div>
+              <div class="square-label">Analyse IA Nemotron</div>
             </div>
+
+            <!-- 4. VPN -->
+            <div class="square-card" id="card-vpn">
+              <div class="square-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="M10 12h4M12 10v4"/>
+                </svg>
+              </div>
+              <div class="square-label">VPN</div>
+            </div>
+
+            <!-- 5. Safepay -->
+            <div class="square-card" id="card-safepay">
+              <div class="square-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                  <path d="M2 12h20"/>
+                </svg>
+              </div>
+              <div class="square-label">Safepay</div>
+            </div>
+
+            <!-- 6. Ajouter une action -->
+            <div class="square-card dashed" id="card-add-action">
+              <div class="square-icon-diamond">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l10 10-10 10L2 12 12 2z"/>
+                  <path d="M12 8v8M8 12h8"/>
+                </svg>
+              </div>
+              <div class="square-label">Ajouter une action</div>
+            </div>
+          </div>
+
+          <!-- Bottom Footer Upsell (Screenshot 3) -->
+          <div class="dashboard-footer-banner">
+            <svg class="footer-pc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            <span>Vous voulez protéger plus d'appareils ? Choisissez un <a href="#" class="footer-link">abonnement Bitdefender Family Pack</a>.</span>
           </div>
         </section>
 
-        <!-- ================= TAB 2: PROTECTION & SCANNER ================= -->
+        <!-- ================= TAB 2: PROTECTION (SCREENSHOT 2) ================= -->
         <section class="tab-panel" id="pane-protection">
-          <div class="bitdefender-card">
-            <div class="bd-card-header">
-              <div>
-                <h2 class="bd-card-title">Analyseur de menaces</h2>
-                <span class="bd-card-subtitle">Contrôle d'intégrité de fichiers et détection de signatures</span>
+          <div class="tab-header-block">
+            <h1 class="main-title">Fonctionnalités de protection</h1>
+          </div>
+
+          <!-- 2-Columns Feature Cards Grid (Screenshot 2) -->
+          <div class="feature-two-col-grid">
+            <!-- 1. Antivirus -->
+            <div class="feature-card">
+              <div class="f-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <polyline points="9 12 11 14 15 10"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Antivirus</h3>
+                </div>
+                <p class="f-desc">La protection en temps réel empêche toute menace d'être exécutée sur votre appareil.</p>
+                <a href="#" class="f-link" id="link-open-antivirus">Ouvrir</a>
               </div>
             </div>
 
-            <div class="bd-card-body">
-              <div class="custom-target-row">
-                <div class="input-with-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                  </svg>
-                  <input type="text" id="scan-target-path" placeholder="Sélectionnez un fichier ou un dossier à analyser..." spellcheck="false">
-                </div>
-                <button class="btn btn-secondary" id="btn-browse-file">Fichier</button>
-                <button class="btn btn-secondary" id="btn-browse-folder">Dossier</button>
+            <!-- 2. Cryptomining Protection -->
+            <div class="feature-card">
+              <div class="f-icon cyan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9 8h6M9 12h6M9 16h6"/>
+                </svg>
               </div>
-
-              <div class="options-bar">
-                <label class="bd-checkbox">
-                  <input type="checkbox" id="scan-opt-recursive" checked>
-                  <span class="chk-box"></span>
-                  <span>Analyser les sous-dossiers récursivement</span>
-                </label>
-
-                <label class="bd-checkbox">
-                  <input type="checkbox" id="scan-opt-quarantine" checked>
-                  <span class="chk-box"></span>
-                  <span>Mettre immédiatement en quarantaine les menaces</span>
-                </label>
-
-                <button class="btn btn-primary" id="btn-start-scan">Lancer l'analyse ciblée</button>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Cryptomining Protection</h3>
+                  <label class="bd-toggle-switch">
+                    <input type="checkbox" id="toggle-cryptomining" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <p class="f-desc">Empêche l'utilisation de votre appareil et de votre électricité pour des activités de Cryptomining qui produisent des revenus.</p>
+                <a href="#" class="f-link">Paramètres</a>
               </div>
+            </div>
 
-              <!-- Last Scan Results Table -->
-              <div class="scan-results-box" id="scan-results-box" style="display: none; margin-top: 24px;">
-                <div class="results-kpi-bar">
-                  <div class="kpi-cell">
-                    <span class="kpi-lbl">Fichiers examinés</span>
-                    <span class="kpi-num" id="res-total-scanned">0</span>
-                  </div>
-                  <div class="kpi-cell danger">
-                    <span class="kpi-lbl">Menaces détectées</span>
-                    <span class="kpi-num" id="res-total-infected">0</span>
-                  </div>
-                  <div class="kpi-cell success">
-                    <span class="kpi-lbl">Objets neutralisés</span>
-                    <span class="kpi-num" id="res-total-quarantined">0</span>
-                  </div>
+            <!-- 3. Advanced Threat Defense -->
+            <div class="feature-card">
+              <div class="f-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                  <polyline points="2 17 12 22 22 17"/>
+                  <polyline points="2 12 12 17 22 12"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Advanced Threat Defense</h3>
                 </div>
+                <p class="f-desc">Identifie les comportements suspects et empêche les attaques zero-day de compromettre votre appareil.</p>
+                <a href="#" class="f-link" id="link-open-atd">Ouvrir</a>
+              </div>
+            </div>
 
-                <div class="table-container">
-                  <table class="bd-table">
-                    <thead>
-                      <tr>
-                        <th>STATUT</th>
-                        <th>FICHIER</th>
-                        <th>MENACE</th>
-                        <th>HASH SHA-256</th>
-                        <th>RÉSULTAT</th>
-                      </tr>
-                    </thead>
-                    <tbody id="scan-results-tbody">
-                      <!-- Results injected here -->
-                    </tbody>
-                  </table>
+            <!-- 4. Prévention menaces en ligne -->
+            <div class="feature-card">
+              <div class="f-icon red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Prévention menaces en ligne</h3>
                 </div>
+                <p class="f-desc">Notre réseau de sécurité - Global Protective Network - sécurise votre appareil en bloquant toutes les menaces.</p>
+                <a href="#" class="f-link">Paramètres</a>
+              </div>
+            </div>
+
+            <!-- 5. Vulnérabilité -->
+            <div class="feature-card">
+              <div class="f-icon amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Vulnérabilité</h3>
+                  <label class="bd-toggle-switch">
+                    <input type="checkbox" id="toggle-vulnerabilities" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <p class="f-desc">Analyse votre système, vos applications et le réseau pour détecter les vulnérabilités qui pourraient compromettre la sécurité.</p>
+                <a href="#" class="f-link">Ouvrir</a>
+              </div>
+            </div>
+
+            <!-- 6. Pare-feu -->
+            <div class="feature-card">
+              <div class="f-icon orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <line x1="3" y1="9" x2="21" y2="9"/>
+                  <line x1="3" y1="15" x2="21" y2="15"/>
+                  <line x1="9" y1="9" x2="9" y2="15"/>
+                  <line x1="15" y1="9" x2="15" y2="15"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Pare-feu</h3>
+                  <label class="bd-toggle-switch">
+                    <input type="checkbox" id="toggle-firewall" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <p class="f-desc">Surveille les connexions de vos applications et fournit un contrôle avancé de la connectivité réseau.</p>
+                <a href="#" class="f-link">Paramètres</a>
+              </div>
+            </div>
+
+            <!-- 7. Remédiation des ransomwares (Screenshot 2) -->
+            <div class="feature-card">
+              <div class="f-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Remédiation des ransomwares</h3>
+                  <label class="bd-toggle-switch">
+                    <input type="checkbox" id="toggle-ransomware-remed" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <p class="f-desc">Bloque les comportements de chiffrement malveillants et restaure automatiquement les fichiers altérés depuis les sauvegardes protégées.</p>
+                <a href="#" class="f-link">Paramètres</a>
+              </div>
+            </div>
+
+            <!-- 8. Analyse Cognitive IA Nemotron (NVIDIA NIM 550B) -->
+            <div class="feature-card highlighted">
+              <div class="f-icon nvidia">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="4" y="4" width="16" height="16" rx="2"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Analyse IA NVIDIA Nemotron</h3>
+                  <span class="ai-badge-live" id="badge-ai-status">550B ACTIF</span>
+                </div>
+                <p class="f-desc">Analyse cognitive approfondie via <strong>nvidia/nemotron-3-ultra-550b-a55b</strong>. Détecte les ransomwares zero-day et les attaques polymorphes.</p>
+                <a href="#" class="f-link" id="link-launch-ai-scan">Analyser un fichier avec l'IA &rsaquo;</a>
               </div>
             </div>
           </div>
-        </section>
 
-        <!-- ================= TAB 3: QUARANTINE VAULT ================= -->
-        <section class="tab-panel" id="pane-quarantine">
-          <div class="bitdefender-card">
-            <div class="bd-card-header">
-              <div>
-                <h2 class="bd-card-title">Coffre-fort de quarantaine</h2>
-                <span class="bd-card-subtitle">Fichiers neutralisés et chiffrés sous clé AES-256-GCM (.pgvault)</span>
+          <!-- Integrated File / Folder Scanner Panel -->
+          <div class="scanner-section-container" id="scanner-section-container">
+            <h2 class="sub-section-title">Analyse personnalisée de fichiers</h2>
+            <div class="custom-target-row">
+              <div class="input-with-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>
+                <input type="text" id="scan-target-path" placeholder="Sélectionnez un fichier ou un dossier à analyser..." spellcheck="false">
               </div>
-              <button class="btn btn-secondary btn-sm" id="btn-refresh-quarantine">Actualiser ⟳</button>
+              <button class="btn btn-secondary" id="btn-browse-file">Fichier</button>
+              <button class="btn btn-secondary" id="btn-browse-folder">Dossier</button>
+              <button class="btn btn-primary" id="btn-start-scan">Lancer l'analyse</button>
             </div>
 
-            <div class="bd-card-body">
-              <div class="vault-metadata-strip">
-                <div>
-                  <span class="v-label">Format de stockage :</span>
-                  <span class="v-val"><code>.pgvault</code> (Payload chiffré)</span>
+            <!-- Results Table -->
+            <div class="scan-results-box" id="scan-results-box" style="display: none; margin-top: 20px;">
+              <div class="results-kpi-bar">
+                <div class="kpi-cell">
+                  <span class="kpi-lbl">Fichiers examinés :</span>
+                  <span class="kpi-num" id="res-total-scanned">0</span>
                 </div>
-                <div>
-                  <span class="v-label">Dossier coffre :</span>
-                  <span class="v-val" id="vault-dir-label">Initialisation...</span>
+                <div class="kpi-cell danger">
+                  <span class="kpi-lbl">Menaces détectées :</span>
+                  <span class="kpi-num" id="res-total-infected">0</span>
+                </div>
+                <div class="kpi-cell success">
+                  <span class="kpi-lbl">Objets neutralisés :</span>
+                  <span class="kpi-num" id="res-total-quarantined">0</span>
                 </div>
               </div>
 
@@ -349,15 +451,15 @@
                 <table class="bd-table">
                   <thead>
                     <tr>
-                      <th style="width: 160px;">DATE D'ISOLATION</th>
-                      <th>FICHIER D'ORIGINE</th>
-                      <th style="width: 220px;">MENACE IDENTIFIÉE</th>
-                      <th style="width: 100px;">GRAVITÉ</th>
-                      <th style="width: 180px;">ACTIONS</th>
+                      <th style="width: 100px;">STATUT</th>
+                      <th>FICHIER</th>
+                      <th style="width: 220px;">MENACE DÉTECTÉE</th>
+                      <th style="width: 120px;">GRAVITÉ</th>
+                      <th style="width: 230px;">ACTIONS</th>
                     </tr>
                   </thead>
-                  <tbody id="quarantine-tbody">
-                    <!-- Quarantined records -->
+                  <tbody id="scan-results-tbody">
+                    <!-- Populated via JavaScript -->
                   </tbody>
                 </table>
               </div>
@@ -365,63 +467,416 @@
           </div>
         </section>
 
-        <!-- ================= TAB 4: RAM AUDIT ================= -->
-        <section class="tab-panel" id="pane-processes">
-          <div class="bitdefender-card">
+        <!-- ================= TAB 3: VIE PRIVÉE (SCREENSHOT 1) ================= -->
+        <section class="tab-panel" id="pane-privacy">
+          <div class="tab-header-block">
+            <h1 class="main-title">Fonctionnalités de vie privée</h1>
+          </div>
+
+          <div class="feature-two-col-grid">
+            <!-- 1. Safepay -->
+            <div class="feature-card">
+              <div class="f-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                  <path d="M2 12h20"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Safepay</h3>
+                </div>
+                <p class="f-desc">Safepay est un environnement sécurisé pour réaliser vos achats et vos opérations bancaire en ligne.</p>
+                <a href="#" class="f-link">Paramètres</a>
+              </div>
+            </div>
+
+            <!-- 2. VPN -->
+            <div class="feature-card">
+              <div class="f-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="M10 12h4M12 10v4"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">VPN</h3>
+                </div>
+                <p class="f-desc">Préserve votre anonymat en ligne et vous ouvre l'accès à des contenus limités par zones géographiques.</p>
+                <a href="#" class="f-link">Ouvrir le VPN</a>
+              </div>
+            </div>
+
+            <!-- 3. Protection Vidéo & Audio -->
+            <div class="feature-card">
+              <div class="f-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 7l-7 5 7 5V7z"/>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Protection Vidéo & Audio</h3>
+                </div>
+                <p class="f-desc">Protège votre vie privée en bloquant les cyberattaques qui pourraient surveiller et enregistrer vos activités.</p>
+                <a href="#" class="f-link">Paramètres</a>
+              </div>
+            </div>
+
+            <!-- 4. Anti-tracker -->
+            <div class="feature-card">
+              <div class="f-icon cyan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Anti-tracker</h3>
+                  <label class="bd-toggle-switch">
+                    <input type="checkbox" id="toggle-antitracker" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <p class="f-desc">Empêche les trackers web de collecter des données permettant la création d'un profil utilisateur et le ciblage commercial.</p>
+                <a href="#" class="f-link">Paramètres</a>
+              </div>
+            </div>
+
+            <!-- 5. Contrôle Parental -->
+            <div class="feature-card">
+              <div class="f-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="7" r="4"/>
+                  <path d="M5.5 21a8.38 8.38 0 0 1 13 0"/>
+                </svg>
+              </div>
+              <div class="f-body">
+                <div class="f-top">
+                  <h3 class="f-title">Contrôle Parental</h3>
+                </div>
+                <p class="f-desc">Vérifiez où se trouve votre enfant et son activité sur l'ensemble des appareils.</p>
+                <a href="#" class="f-link">↗ Configurer</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 4: UTILITAIRES ================= -->
+        <section class="tab-panel" id="pane-utilities">
+          <div class="tab-header-block">
+            <h1 class="main-title">Utilitaires & Quarantaine</h1>
+          </div>
+
+          <!-- Quarantine Vault Table Card -->
+          <div class="bitdefender-card" id="pane-quarantine">
             <div class="bd-card-header">
               <div>
-                <h2 class="bd-card-title">Audit des processus en mémoire</h2>
-                <span class="bd-card-subtitle">Surveillance en direct des processus actifs et analyse de leurs exécutables</span>
+                <h3 class="bd-card-title">Coffre-fort de Quarantaine AES-256-GCM</h3>
+                <span class="bd-card-subtitle">Objets isolés chiffrés sous clé sécurisée (.pgvault)</span>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-quarantine">Actualiser ⟳</button>
+            </div>
+            <div class="bd-card-body">
+              <div class="table-container">
+                <table class="bd-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 150px;">DATE D'ISOLATION</th>
+                      <th>FICHIER D'ORIGINE</th>
+                      <th style="width: 200px;">MENACE</th>
+                      <th style="width: 90px;">GRAVITÉ</th>
+                      <th style="width: 180px;">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="quarantine-tbody">
+                    <!-- Populated via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- RAM & Process Inspection Card -->
+          <div class="bitdefender-card" id="pane-processes" style="margin-top: 24px;">
+            <div class="bd-card-header">
+              <div>
+                <h3 class="bd-card-title">Inspecteur Mémoire RAM</h3>
+                <span class="bd-card-subtitle">Vérification d'intégrité des processus Windows en cours d'exécution</span>
               </div>
               <div class="header-actions">
                 <input type="text" id="filter-processes-input" placeholder="Filtrer processus..." class="bd-search">
                 <button class="btn btn-primary btn-sm" id="btn-scan-processes">Inspecter la RAM ⚡</button>
               </div>
             </div>
-
             <div class="bd-card-body">
               <div class="table-container">
                 <table class="bd-table">
                   <thead>
                     <tr>
                       <th style="width: 80px;">PID</th>
-                      <th style="width: 220px;">NOM</th>
-                      <th>EXÉCUTABLE</th>
-                      <th style="width: 130px;">STATUT</th>
-                      <th style="width: 160px;">DÉTECTION</th>
+                      <th style="width: 200px;">NOM</th>
+                      <th>CHEMIN D'ACCÈS</th>
+                      <th style="width: 120px;">STATUT</th>
                     </tr>
                   </thead>
                   <tbody id="processes-tbody">
-                    <tr>
-                      <td colspan="5" class="empty-cell">Cliquez sur « Inspecter la RAM » pour analyser les processus actifs.</td>
-                    </tr>
+                    <tr><td colspan="4" class="empty-cell">Cliquez sur « Inspecter la RAM » pour démarrer.</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
-        </section>
 
-        <!-- ================= TAB 5: AUDIT LOGS ================= -->
-        <section class="tab-panel" id="pane-audit">
-          <div class="bitdefender-card">
+          <!-- Audit Console Log -->
+          <div class="bitdefender-card" id="pane-audit" style="margin-top: 24px;">
             <div class="bd-card-header">
               <div>
-                <h2 class="bd-card-title">Journal des événements de sécurité</h2>
-                <span class="bd-card-subtitle">Historique des analyses, détections et actions du moteur</span>
+                <h3 class="bd-card-title">Journal d'Audit</h3>
               </div>
-              <div class="header-actions">
-                <button class="btn btn-secondary btn-sm" id="btn-clear-logs">Effacer</button>
-                <button class="btn btn-secondary btn-sm" id="btn-refresh-logs">Actualiser ⟳</button>
-              </div>
+              <button class="btn btn-secondary btn-sm" id="btn-clear-logs">Effacer</button>
             </div>
-
             <div class="bd-card-body">
-              <div class="bd-terminal-console">
-                <div class="terminal-body" id="audit-log-terminal">
-                  <!-- Log entries stream here -->
+              <div class="terminal-body" id="audit-log-terminal"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 5: NOTIFICATIONS (SCREENSHOT 4) ================= -->
+        <section class="tab-panel" id="pane-notifications">
+          <div class="tab-header-block">
+            <h1 class="main-title">Notifications</h1>
+          </div>
+
+          <!-- Filter Subtabs & Action Buttons (Screenshot 4) -->
+          <div class="notifications-toolbar">
+            <div class="notif-filters">
+              <button class="notif-tab active" data-filter="all">Tous</button>
+              <button class="notif-tab" data-filter="critical">Critiques</button>
+              <button class="notif-tab" data-filter="warning">Avertissements</button>
+              <button class="notif-tab" data-filter="info">Informations</button>
+            </div>
+            <div class="notif-actions">
+              <button class="icon-action-btn" id="btn-mark-all-read" title="Tout marquer comme lu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="18 6 7 17 2 12"/>
+                  <polyline points="22 10 13 19 11 17"/>
+                </svg>
+              </button>
+              <button class="icon-action-btn" id="btn-delete-all-notifs" title="Tout supprimer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Notifications Accordion List (Screenshot 4) -->
+          <div class="notifications-list" id="notifications-list">
+            <!-- Row 1: Remédiation des ransomwares -->
+            <div class="notif-item-row" data-severity="critical">
+              <div class="notif-dot green"></div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">Comportement d'un ransomware remédié</div>
+                <div class="notif-item-time">il y a une minute</div>
+                <div class="notif-item-details" style="display: none;">
+                  <strong>Fonctionnalité :</strong> Remédiation des ransomwares<br>
+                  Le moteur PulseGuard a neutralisé une tentative d'altération suspecte. Vos fichiers cibles ont été protégés et restaurés.
                 </div>
               </div>
+              <button class="notif-chevron-btn">&rsaquo;</button>
+            </div>
+
+            <!-- Row 2: NVIDIA Nemotron AI -->
+            <div class="notif-item-row" data-severity="info">
+              <div class="notif-dot blue"></div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">Moteur IA NVIDIA Nemotron 3 Ultra 550B connecté</div>
+                <div class="notif-item-time">il y a 10 minutes</div>
+                <div class="notif-item-details" style="display: none;">
+                  L'antivirus est couplé au modèle de raisonnement NVIDIA NIM pour la détection cognitive des menaces zero-day.
+                </div>
+              </div>
+              <button class="notif-chevron-btn">&rsaquo;</button>
+            </div>
+
+            <!-- Row 3: Microphone -->
+            <div class="notif-item-row" data-severity="warning">
+              <div class="notif-dot amber"></div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">L'application Discord accède à votre micro</div>
+                <div class="notif-item-time">il y a une heure</div>
+                <div class="notif-item-details" style="display: none;">
+                  Accès audio autorisé selon vos règles de confidentialité.
+                </div>
+              </div>
+              <button class="notif-chevron-btn">&rsaquo;</button>
+            </div>
+
+            <!-- Row 4: Network Access -->
+            <div class="notif-item-row" data-severity="info">
+              <div class="notif-dot green"></div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">Application autorisée à accéder au réseau</div>
+                <div class="notif-item-time">il y a une heure</div>
+                <div class="notif-item-details" style="display: none;">
+                  Le pare-feu a vérifié l'empreinte cryptographique de la connexion.
+                </div>
+              </div>
+              <button class="notif-chevron-btn">&rsaquo;</button>
+            </div>
+
+            <!-- Row 5: Threat detected -->
+            <div class="notif-item-row" data-severity="warning">
+              <div class="notif-dot amber"></div>
+              <div class="notif-item-content">
+                <div class="notif-item-title">Élément infecté détecté et placé sous clé</div>
+                <div class="notif-item-time">il y a 2 heures</div>
+                <div class="notif-item-details" style="display: none;">
+                  Fichier neutralisé sous chiffrement authentifié AES-256-GCM (.pgvault).
+                </div>
+              </div>
+              <button class="notif-chevron-btn">&rsaquo;</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 6: PARAMÈTRES (SCREENSHOT 5) ================= -->
+        <section class="tab-panel" id="pane-settings">
+          <div class="tab-header-block">
+            <h1 class="main-title">Paramètres</h1>
+          </div>
+
+          <!-- Settings Subtabs (Screenshot 5) -->
+          <div class="settings-subtabs">
+            <button class="settings-subtab active" data-subtab="general">Généraux</button>
+            <button class="settings-subtab" data-subtab="advanced">Avancés & IA NVIDIA</button>
+            <button class="settings-subtab" data-subtab="updates">Mise à jour</button>
+          </div>
+
+          <!-- Subtab 1: Généraux (Screenshot 5) -->
+          <div class="settings-content-pane active" id="subpane-general">
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="setting-title">Protection par mot de passe</div>
+                <div class="setting-desc">Limite l'accès aux paramètres Bitdefender.</div>
+              </div>
+              <label class="bd-toggle-switch">
+                <input type="checkbox" id="toggle-pwd-protect">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="setting-title">Gestion du mot de passe</div>
+                <div class="setting-desc">Change le mot de passe qui limite l'accès aux paramètres Bitdefender.</div>
+              </div>
+              <a href="#" class="setting-action-link">Changement de mot de passe</a>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="setting-title">Widget de sécurité</div>
+                <div class="setting-desc">Affiche le statut de sécurité de votre appareil sur le bureau.</div>
+              </div>
+              <label class="bd-toggle-switch">
+                <input type="checkbox" id="toggle-desktop-widget">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="setting-title">Offres spéciales</div>
+                <div class="setting-desc">Affiche les notifications concernant des offres spéciales et personnalisées.</div>
+              </div>
+              <label class="bd-toggle-switch">
+                <input type="checkbox" id="toggle-special-offers" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="setting-title">Affichage de recommandations</div>
+                <div class="setting-desc">Affiche des recommandations de sécurité en fonction de vos actions.</div>
+              </div>
+              <label class="bd-toggle-switch">
+                <input type="checkbox" id="toggle-show-recomms" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="setting-title">Langue du produit</div>
+                <div class="setting-desc">Modifie la langue de votre produit.</div>
+              </div>
+              <a href="#" class="setting-action-link">Changer la langue</a>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="setting-title">Mode sombre</div>
+                <div class="setting-desc">Changer le thème de l'application.</div>
+              </div>
+              <label class="bd-toggle-switch">
+                <input type="checkbox" id="toggle-dark-mode" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Subtab 2: Avancés & IA NVIDIA -->
+          <div class="settings-content-pane" id="subpane-advanced">
+            <div class="ai-config-card">
+              <div class="ai-card-header">
+                <div class="nvidia-logo-badge">NVIDIA NIM</div>
+                <div>
+                  <h3 class="ai-config-title">Scanner d'Analyse Cognitive Nemotron</h3>
+                  <p class="ai-config-desc">Utilise le super-modèle <strong>nvidia/nemotron-3-ultra-550b-a55b</strong> pour déconstruire les codes malveillants et déjouer les attaques zero-day.</p>
+                </div>
+              </div>
+
+              <div class="ai-input-group">
+                <label class="ai-label">Clé API NVIDIA (build.nvidia.com) :</label>
+                <div class="input-password-row">
+                  <input type="password" id="input-nvidia-key" placeholder="nvapi-..." spellcheck="false">
+                  <button class="btn btn-secondary btn-sm" id="btn-toggle-key-visibility">👁 Afficher</button>
+                </div>
+                <span class="ai-sublabel" id="label-nvidia-status">Clé non configurée. Enregistrez votre clé pour activer l'analyse cognitive 550B.</span>
+              </div>
+
+              <div class="ai-input-group">
+                <label class="ai-label">Modèle d'IA :</label>
+                <select id="select-nvidia-model" class="bd-select">
+                  <option value="nvidia/nemotron-3-ultra-550b-a55b" selected>nvidia/nemotron-3-ultra-550b-a55b (Recommandé)</option>
+                  <option value="nvidia/llama-3.1-nemotron-70b-instruct">nvidia/llama-3.1-nemotron-70b-instruct (Secours)</option>
+                </select>
+              </div>
+
+              <div class="ai-buttons-row">
+                <button class="btn btn-primary" id="btn-save-ai-config">Enregistrer la Clé API</button>
+                <button class="btn btn-secondary" id="btn-test-ai-conn">Tester la Connexion NVIDIA</button>
+              </div>
+              <div id="ai-test-feedback-box" class="ai-feedback-box" style="display: none;"></div>
+            </div>
+          </div>
+
+          <!-- Subtab 3: Mise à jour -->
+          <div class="settings-content-pane" id="subpane-updates">
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="setting-title">Base virale PulseGuard</div>
+                <div class="setting-desc">Dernière mise à jour : Aujourd'hui à 20:15. Version : 2026.10.27-REV3.</div>
+              </div>
+              <button class="btn btn-primary btn-sm" id="btn-check-updates">Rechercher les mises à jour</button>
             </div>
           </div>
         </section>
@@ -429,24 +884,23 @@
       </main>
     </div>
 
-    <!-- ================= DEDICATED BITDEFENDER SCAN OVERLAY ================= -->
+    <!-- ================= FULLSCREEN BITDEFENDER SCAN OVERLAY ================= -->
     <div class="bitdefender-scan-overlay" id="scan-overlay" style="display: none;">
       <div class="scan-overlay-card">
         <div class="scan-overlay-header">
           <div class="scan-pulse-ring">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              <path d="m9 12 2 2 4-4"/>
+              <polyline points="9 12 11 14 15 10"/>
             </svg>
           </div>
           <div>
             <h2 class="scan-overlay-title" id="overlay-scan-title">Analyse en cours...</h2>
-            <div class="scan-overlay-subtitle">PulseGuard examine vos fichiers et compare les signatures en mémoire</div>
+            <div class="scan-overlay-subtitle">Examen approfondi des fichiers et corrélation heuristique</div>
           </div>
           <button class="btn btn-danger-sm" id="btn-overlay-stop-scan">Arrêter l'analyse</button>
         </div>
 
-        <!-- Big Progress Bar & Percentage -->
         <div class="scan-meter-row">
           <div class="scan-percent-hero" id="overlay-progress-percent">0%</div>
           <div class="scan-track-large">
@@ -454,13 +908,11 @@
           </div>
         </div>
 
-        <!-- Real-time current scanned file display -->
         <div class="scan-current-file-box">
           <span class="file-box-label">Élément en cours d'examen :</span>
-          <div class="file-box-path" id="overlay-current-file">Initialisation du scan...</div>
+          <div class="file-box-path" id="overlay-current-file">Initialisation...</div>
         </div>
 
-        <!-- 4 Live Counters -->
         <div class="scan-counters-row">
           <div class="counter-box">
             <div class="c-number" id="overlay-scanned-count">0</div>
@@ -477,6 +929,30 @@
           <div class="counter-box">
             <div class="c-number" id="overlay-elapsed-time">00:00:00</div>
             <div class="c-label">Temps écoulé</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= NVIDIA NEMOTRON AI REPORT MODAL ================= -->
+    <div class="ai-report-modal" id="ai-report-modal" style="display: none;">
+      <div class="ai-modal-backdrop" id="ai-modal-backdrop"></div>
+      <div class="ai-modal-dialog">
+        <div class="ai-modal-header">
+          <div class="ai-dialog-brand">
+            <div class="nvidia-logo-small">NVIDIA</div>
+            <span class="ai-dialog-title">Rapport d'Analyse Cognitive Nemotron 550B</span>
+          </div>
+          <button class="ai-modal-close" id="btn-close-ai-modal">&times;</button>
+        </div>
+
+        <div class="ai-modal-body" id="ai-modal-content">
+          <div class="ai-loading-spinner" id="ai-loading-spinner">
+            <div class="spinner-ring"></div>
+            <span>Transmission de la télémétrie à NVIDIA Nemotron 3 Ultra 550B...</span>
+          </div>
+          <div id="ai-report-details" style="display: none;">
+            <!-- Rendered by app.js -->
           </div>
         </div>
       </div>

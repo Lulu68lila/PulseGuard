@@ -1,5 +1,6 @@
 """PulseGuard Threat Signature Database and Pattern Matching."""
 
+import base64
 import hashlib
 import json
 from pathlib import Path
@@ -7,8 +8,9 @@ from typing import Dict, List, Optional, Tuple
 
 from pulseguard.core.models import ThreatInfo, ThreatSeverity
 
-# Official EICAR standard anti-virus test file signature (68 bytes)
-EICAR_BYTE_STRING = b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+# Base64-obfuscated EICAR standard test signature to prevent host antivirus false-positives
+_EICAR_B64 = b"WDVPIVAlQEFQWzRQWlhkNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo="
+EICAR_BYTE_STRING = base64.b64decode(_EICAR_B64)
 EICAR_SHA256 = "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"
 
 
@@ -59,10 +61,10 @@ class SignatureDatabase:
             ),
         )
 
-        # 3. Test Ransomware Extension/Payload Marker Pattern
-        ransom_marker = b"::PULSEGUARD_TEST_RANSOM_MARKER::"
+        # 3. Simulated Ransomware Byte Pattern
+        test_ransom_marker = b"::PULSEGUARD_TEST_RANSOM_MARKER::"
         self.add_byte_pattern(
-            ransom_marker,
+            test_ransom_marker,
             ThreatInfo(
                 threat_name="Ransom.PulseGuard.TestPayload",
                 threat_type="ransomware",
@@ -74,60 +76,66 @@ class SignatureDatabase:
         )
 
     def add_hash_signature(self, sha256_hash: str, threat: ThreatInfo) -> None:
-        """Add a SHA-256 hash threat signature."""
+        """Add a SHA-256 hash detection rule to the database."""
         self._hash_signatures[sha256_hash.lower()] = threat
 
     def add_byte_pattern(self, pattern: bytes, threat: ThreatInfo) -> None:
-        """Add a raw byte pattern sequence to match within file headers or bodies."""
+        """Add a raw byte sequence detection rule to the database."""
         self._byte_patterns.append((pattern, threat))
 
-    def load_from_json(self, file_path: Path) -> int:
-        """Load external signatures from a JSON file.
+    def match_hash(self, sha256_hash: str) -> Optional[ThreatInfo]:
+        """Check if a SHA-256 hash matches any known signature."""
+        return self._hash_signatures.get(sha256_hash.lower())
 
-        Expected schema:
-        [
-            {
-                "sha256": "...",
-                "threat_name": "...",
-                "threat_type": "...",
-                "severity": "CRITICAL|HIGH|MEDIUM|LOW",
-                "rule_matched": "...",
-                "details": "..."
-            }
-        ]
-        """
-        with open(file_path, "r", encoding="utf-8") as f:
+    def match_bytes(self, data: bytes) -> Optional[ThreatInfo]:
+        """Check if a byte sequence matches any registered byte patterns."""
+        for pattern, threat in self._byte_patterns:
+            if pattern in data:
+                return threat
+        return None
+
+    def load_from_json(self, json_path: Path) -> int:
+        """Load additional signatures from a JSON file."""
+        if not json_path.exists():
+            raise FileNotFoundError(f"Signature file not found: {json_path}")
+
+        with open(json_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         count = 0
-        for entry in data:
-            sha256_hash = entry.get("sha256", "").strip().lower()
-            if not sha256_hash:
-                continue
+        if isinstance(data, list):
+            hash_entries = data
+            pattern_entries = []
+        else:
+            hash_entries = data.get("hash_signatures", [])
+            pattern_entries = data.get("byte_patterns", [])
 
+        for entry in hash_entries:
             threat = ThreatInfo(
-                threat_name=entry.get("threat_name", "Unknown.Threat"),
-                threat_type=entry.get("threat_type", "signature"),
-                severity=ThreatSeverity(entry.get("severity", "MEDIUM").upper()),
-                rule_matched=entry.get("rule_matched", f"SIG_EXT_{sha256_hash[:8]}"),
-                file_hash=sha256_hash,
-                details=entry.get("details"),
+                threat_name=entry["threat_name"],
+                threat_type=entry.get("threat_type", "generic"),
+                severity=ThreatSeverity(entry.get("severity", "MEDIUM")),
+                rule_matched=entry.get("rule_matched", "EXTERNAL_HASH"),
+                file_hash=entry["sha256"].lower(),
+                details=entry.get("details", ""),
             )
-            self.add_hash_signature(sha256_hash, threat)
+            self.add_hash_signature(entry["sha256"], threat)
             count += 1
+
+        for entry in pattern_entries:
+            pattern = bytes.fromhex(entry["hex_pattern"])
+            threat = ThreatInfo(
+                threat_name=entry["threat_name"],
+                threat_type=entry.get("threat_type", "generic"),
+                severity=ThreatSeverity(entry.get("severity", "MEDIUM")),
+                rule_matched=entry.get("rule_matched", "EXTERNAL_PATTERN"),
+                file_hash="",
+                details=entry.get("details", ""),
+            )
+            self.add_byte_pattern(pattern, threat)
+            count += 1
+
         return count
-
-    def match_hash(self, sha256_hash: str) -> Optional[ThreatInfo]:
-        """Check if a SHA-256 hash matches a known malicious signature."""
-        return self._hash_signatures.get(sha256_hash.lower())
-
-    def match_bytes(self, content: bytes, max_search_bytes: int = 1048576) -> Optional[ThreatInfo]:
-        """Search for known malicious byte sequences in the buffer."""
-        search_slice = content[:max_search_bytes]
-        for pattern, threat in self._byte_patterns:
-            if pattern in search_slice:
-                return threat
-        return None
 
     @property
     def total_hash_signatures(self) -> int:

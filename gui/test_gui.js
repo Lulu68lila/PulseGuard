@@ -88,7 +88,7 @@ for (const id of requiredIds) {
 // 5. Validate CSS rules
 const css = fs.readFileSync(path.join(__dirname, 'styles.css'), 'utf-8');
 assert(css.includes('--bd-bg-canvas: #0c1017;'), 'CSS contains Bitdefender palette');
-assert(css.includes('.bitdefender-hero'), 'CSS contains Bitdefender hero style');
+assert(css.includes('.recommendation-card'), 'CSS contains Bitdefender recommendation card style');
 assert(css.includes('.bitdefender-scan-overlay'), 'CSS contains scan overlay style');
 assert(css.includes('.bd-notification'), 'CSS contains floating notification card style');
 assert(css.includes('.toast-anchor-left'), 'CSS anchors notifications to bottom-left');

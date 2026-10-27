@@ -169,3 +169,29 @@ def test_async_scan_workflow(api_server, tmp_path: Path):
     status, stop_data, _ = make_request("POST", "/api/scan/stop")
     assert status == 200
     assert stop_data["stopped"] is True
+
+
+def test_api_config_endpoints(api_server):
+    status, data, _ = make_request("GET", "/api/config")
+    assert status == 200
+    assert "nvidia_api_key_configured" in data
+    assert "nvidia_model" in data
+
+    # Update config
+    status, post_data, _ = make_request("POST", "/api/config", {
+        "nvidia_api_key": "nvapi-test1234567890abcdef",
+        "nvidia_model": "nvidia/nemotron-3-ultra-550b-a55b",
+    })
+    assert status == 200
+    assert post_data["success"] is True
+
+
+def test_api_ai_scan_endpoint(api_server, tmp_path: Path):
+    sample = tmp_path / "eval_sample.txt"
+    sample.write_text("Set-ItemProperty -Path HKCU:\\Software\\TestApp -Name Enabled -Value 1\n", encoding="utf-8")
+
+    status, data, _ = make_request("POST", "/api/ai/scan", {"path": str(sample)})
+    assert status == 200
+    assert data["success"] is True
+    assert "verdict" in data
+    assert "confidence_score" in data

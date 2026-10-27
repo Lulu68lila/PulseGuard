@@ -152,7 +152,7 @@ class HeuristicAnalyzer:
 
         # Only evaluate entropy on executable or binary formats
         ext = file_path.suffix.lower()
-        is_binary = ext in {".exe", ".dll", ".sys", ".scr", ".bin"} or file_bytes[:2] == b"MZ"
+        is_binary = ext in {".exe", ".dll", ".sys", ".scr"} or file_bytes[:2] == b"MZ"
         if not is_binary:
             return None
 
@@ -161,7 +161,7 @@ class HeuristicAnalyzer:
             return ThreatInfo(
                 threat_name="Heuristic.Packed.HighEntropyBinary",
                 threat_type="packed_pe",
-                severity=ThreatSeverity.MEDIUM,
+                severity=ThreatSeverity.LOW,
                 rule_matched="HEUR_HIGH_ENTROPY_PACKED",
                 file_hash=file_hash,
                 details=f"Calculated Shannon entropy {entropy:.2f}/8.0 exceeds threshold {self.entropy_threshold}.",
