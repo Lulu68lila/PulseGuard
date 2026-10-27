@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>PulseGuard — Endpoint Protection & Threat Shield</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Cyberpunk Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M7 12h3l2-4 2 8 2-4h3" stroke="#00f0ff" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">PULSE<span class="highlight">GUARD</span></span>
+          <span class="brand-sub">NEXT-GEN ENDPOINT SECURITY v0.2.0</span>
+        </div>
+      </div>
+
+      <div class="system-pills">
+        <div class="pill pill-engine" id="pill-engine-status">
+          <span class="dot pulse-green"></span>
+          <span class="label">MOTEUR :</span>
+          <span class="value" id="engine-status-text">CONNEXION...</span>
+        </div>
+        <div class="pill pill-vault">
+          <span class="icon">🔒</span>
+          <span class="label">VAULT :</span>
+          <span class="value" id="top-vault-count">0 ISOLÉS</span>
+        </div>
+        <div class="pill pill-watcher" id="pill-watcher-status">
+          <span class="dot"></span>
+          <span class="label">SENTINELLE :</span>
+          <span class="value" id="top-watcher-text">INACTIVE</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- App Body with Sidebar & Views -->
+    <div class="main-layout">
+      <!-- Cyber Sidebar Navigation -->
+      <nav class="sidebar">
+        <div class="nav-section-title">NAVIGATION PRINCIPALE</div>
+        <ul class="nav-list">
+          <li class="nav-item active" data-tab="dashboard">
+            <span class="nav-icon">🛡️</span>
+            <span class="nav-label">Tableau de Bord</span>
+          </li>
+          <li class="nav-item" data-tab="scanner">
+            <span class="nav-icon">🔍</span>
+            <span class="nav-label">Scanner de Fichiers</span>
+          </li>
+          <li class="nav-item" data-tab="processes">
+            <span class="nav-icon">🧠</span>
+            <span class="nav-label">Mémoire Vive (RAM)</span>
+          </li>
+          <li class="nav-item" data-tab="quarantine">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">Coffre Quarantaine</span>
+            <span class="badge" id="nav-quarantine-badge">0</span>
+          </li>
+          <li class="nav-item" data-tab="watcher">
+            <span class="nav-icon">👁️</span>
+            <span class="nav-label">Sentinelle Temps Réel</span>
+          </li>
+          <li class="nav-item" data-tab="audit">
+            <span class="nav-icon">📜</span>
+            <span class="nav-label">Journal d'Audit</span>
+          </li>
+        </ul>
+
+        <div class="sidebar-footer">
+          <div class="crypto-tag">AES-256-GCM / SHA-256</div>
+          <div class="host-info">PC-LUCAS · 127.0.0.1:48201</div>
+        </div>
+      </nav>
+
+      <!-- Main Content Container -->
+      <main class="content-viewport">
+
+        <!-- ================= TAB 1: DASHBOARD ================= -->
+        <section class="tab-pane active" id="pane-dashboard">
+          <div class="hero-shield-card">
+            <div class="radar-container">
+              <div class="radar-ring ring-outer"></div>
+              <div class="radar-ring ring-middle"></div>
+              <div class="radar-ring ring-inner"></div>
+              <div class="radar-sweep"></div>
+              <div class="shield-core" id="shield-core-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2"/>
+                  <polyline points="9 12 11 14 15 10" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="shield-info">
+              <div class="shield-status-badge status-protected" id="dashboard-shield-badge">
+                SYSTÈME SÉCURISÉ & PROTÉGÉ
+              </div>
+              <h1 class="shield-title">PulseGuard Endpoint Shield</h1>
+              <p class="shield-desc">
+                Surveillance heuristique hybride, détection de motifs d'octets et isolation immédiate chiffrée.
+              </p>
+
+              <div class="quick-buttons">
+                <button class="btn btn-primary" id="btn-quick-scan-downloads">
+                  ⚡ Scan Rapide (Téléchargements)
+                </button>
+                <button class="btn btn-outline" id="btn-goto-scanner">
+                  📂 Analyse Ciblée
+                </button>
+                <button class="btn btn-outline" id="btn-goto-processes">
+                  🧠 Vérifier la RAM
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4 Stats Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon-wrapper cyan">🧬</div>
+              <div class="stat-meta">
+                <div class="stat-value" id="stat-signatures">4</div>
+                <div class="stat-label">Signatures & Motifs</div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrapper red">☣️</div>
+              <div class="stat-meta">
+                <div class="stat-value" id="stat-quarantine-count">0</div>
+                <div class="stat-label">Menaces Neutralisées</div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrapper green">👁️</div>
+              <div class="stat-meta">
+                <div class="stat-value" id="stat-watcher-status">INACTIF</div>
+                <div class="stat-label">Sentinelle Répertoire</div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrapper purple">🔐</div>
+              <div class="stat-meta">
+                <div class="stat-value">AES-256</div>
+                <div class="stat-label">Coffre Quarantaine</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity Banner -->
+          <div class="card recent-activity-card">
+            <div class="card-header">
+              <h3>📡 Événements Récents du Système</h3>
+              <button class="btn-text" id="btn-refresh-dashboard">Actualiser ⟳</button>
+            </div>
+            <div class="card-body" id="dashboard-recent-events">
+              <div class="empty-state">Aucun événement suspect récent détecté. Tout est calme.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 2: FILE SCANNER ================= -->
+        <section class="tab-pane" id="pane-scanner">
+          <div class="card">
+            <div class="card-header">
+              <h2>🔍 Analyseur de Menaces sur le Système de Fichiers</h2>
+              <span class="sub-text">Scannez des fichiers individuels ou des répertoires entiers en profondeur</span>
+            </div>
+
+            <div class="card-body">
+              <div class="scan-input-group">
+                <div class="input-wrapper">
+                  <input type="text" id="scan-target-path" placeholder="Sélectionnez ou collez un chemin de fichier ou dossier..." spellcheck="false">
+                </div>
+                <button class="btn btn-secondary" id="btn-browse-file">📄 Fichier...</button>
+                <button class="btn btn-secondary" id="btn-browse-folder">📁 Dossier...</button>
+              </div>
+
+              <div class="scan-options-row">
+                <label class="cyber-checkbox">
+                  <input type="checkbox" id="scan-opt-recursive" checked>
+                  <span class="checkmark"></span>
+                  <span class="opt-label">Analyser les sous-dossiers récursivement</span>
+                </label>
+
+                <label class="cyber-checkbox">
+                  <input type="checkbox" id="scan-opt-quarantine" checked>
+                  <span class="checkmark"></span>
+                  <span class="opt-label">Mettre immédiatement en quarantaine les fichiers infectés</span>
+                </label>
+
+                <button class="btn btn-danger-action" id="btn-start-scan">
+                  ⚡ DÉMARRER LE SCAN
+                </button>
+              </div>
+
+              <!-- Animated Progress Bar -->
+              <div class="scan-progress-box" id="scan-progress-box" style="display: none;">
+                <div class="progress-info-row">
+                  <span id="scan-progress-status">Analyse en cours...</span>
+                  <span id="scan-progress-percent">50%</span>
+                </div>
+                <div class="cyber-progress-track">
+                  <div class="cyber-progress-bar" id="scan-progress-bar"></div>
+                </div>
+              </div>
+
+              <!-- Results Area -->
+              <div class="scan-results-box" id="scan-results-box" style="display: none;">
+                <div class="results-summary-strip" id="scan-summary-strip">
+                  <div class="summary-item"><span class="sum-count" id="res-total-scanned">0</span> fichiers analysés</div>
+                  <div class="summary-item sum-infected"><span class="sum-count" id="res-total-infected">0</span> menaces détectées</div>
+                  <div class="summary-item sum-quarantined"><span class="sum-count" id="res-total-quarantined">0</span> neutralisés</div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="cyber-table" id="table-scan-results">
+                    <thead>
+                      <tr>
+                        <th>STATUT</th>
+                        <th>FICHIER</th>
+                        <th>MENACE</th>
+                        <th>HASH SHA-256</th>
+                        <th>QUARANTAINE</th>
+                      </tr>
+                    </thead>
+                    <tbody id="scan-results-tbody">
+                      <!-- Rows injected dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 3: PROCESS MEMORY SCANNER ================= -->
+        <section class="tab-pane" id="pane-processes">
+          <div class="card">
+            <div class="card-header">
+              <h2>🧠 Inspection de la Mémoire Vive (Processus Actifs)</h2>
+              <div class="header-actions">
+                <input type="text" id="filter-processes-input" placeholder="Filtrer processus par nom..." class="mini-search">
+                <button class="btn btn-primary" id="btn-scan-processes">Scanner les Processus ⚡</button>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="cyber-table">
+                  <thead>
+                    <tr>
+                      <th>PID</th>
+                      <th>NOM</th>
+                      <th>CHEMIN DE L'EXÉCUTABLE</th>
+                      <th>STATUT MÉMOIRE</th>
+                      <th>MENACE</th>
+                    </tr>
+                  </thead>
+                  <tbody id="processes-tbody">
+                    <tr>
+                      <td colspan="5" class="empty-state">Cliquez sur « Scanner les Processus » pour inspecter la RAM système.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 4: QUARANTINE VAULT ================= -->
+        <section class="tab-pane" id="pane-quarantine">
+          <div class="card">
+            <div class="card-header">
+              <h2>📦 Coffre-fort de Quarantaine (Isolation AES-256-GCM)</h2>
+              <div class="header-actions">
+                <button class="btn btn-secondary" id="btn-refresh-quarantine">Actualiser ⟳</button>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="vault-meta-banner">
+                <div class="vault-meta-item">
+                  <span class="meta-label">Protection Cryptographique :</span>
+                  <span class="meta-val">AES-256-GCM Authentifié avec Clé Unique</span>
+                </div>
+                <div class="vault-meta-item">
+                  <span class="meta-label">Extension Neutre :</span>
+                  <span class="meta-val"><code>.pgvault</code> (Inoffensif sur disque)</span>
+                </div>
+                <div class="vault-meta-item">
+                  <span class="meta-label">Dossier Coffre :</span>
+                  <span class="meta-val" id="vault-dir-label">Chargement...</span>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="cyber-table">
+                  <thead>
+                    <tr>
+                      <th>DATE</th>
+                      <th>CHEMIN D'ORIGINE</th>
+                      <th>MENACE</th>
+                      <th>GRAVITÉ</th>
+                      <th>ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="quarantine-tbody">
+                    <!-- Populated via API -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 5: WATCHER SENTINEL ================= -->
+        <section class="tab-pane" id="pane-watcher">
+          <div class="card">
+            <div class="card-header">
+              <h2>👁️ Sentinelle en Temps Réel (Watchdog)</h2>
+              <span class="sub-text">Interception automatique dès l'écriture ou la modification sur disque</span>
+            </div>
+
+            <div class="card-body">
+              <div class="watcher-control-panel">
+                <div class="watcher-status-card" id="watcher-card-indicator">
+                  <div class="watcher-led" id="watcher-led"></div>
+                  <div class="watcher-info-text">
+                    <h3 id="watcher-title-status">SENTINELLE INACTIVE</h3>
+                    <p id="watcher-desc-status">Aucun répertoire n'est actuellement surveillé en arrière-plan.</p>
+                  </div>
+                  <div class="watcher-switch-wrapper">
+                    <label class="switch">
+                      <input type="checkbox" id="watcher-toggle-checkbox">
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="watcher-config-box">
+                  <div class="input-row">
+                    <label>Répertoire à surveiller :</label>
+                    <div class="input-wrapper">
+                      <input type="text" id="watcher-path-input" placeholder="Ex: C:\Users\Lucas\Downloads">
+                    </div>
+                    <button class="btn btn-secondary" id="btn-browse-watcher-folder">📁 Choisir Dossier</button>
+                  </div>
+
+                  <label class="cyber-checkbox mt-1">
+                    <input type="checkbox" id="watcher-opt-quarantine" checked>
+                    <span class="checkmark"></span>
+                    <span class="opt-label">Mettre immédiatement en quarantaine toute menace interceptée</span>
+                  </label>
+                </div>
+              </div>
+
+              <h3 class="section-title mt-2">📡 Flux d'Interception en Direct</h3>
+              <div class="table-responsive">
+                <table class="cyber-table">
+                  <thead>
+                    <tr>
+                      <th>FICHIER DÉTECTÉ</th>
+                      <th>RÉSULTAT</th>
+                      <th>MENACE IDENTIFIÉE</th>
+                      <th>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody id="watcher-events-tbody">
+                    <tr>
+                      <td colspan="4" class="empty-state">En attente d'événements de fichiers...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 6: AUDIT LOGS ================= -->
+        <section class="tab-pane" id="pane-audit">
+          <div class="card">
+            <div class="card-header">
+              <h2>📜 Console Journal d'Audit & Sécurité</h2>
+              <div class="header-actions">
+                <button class="btn btn-outline" id="btn-clear-logs">Effacer Console</button>
+                <button class="btn btn-secondary" id="btn-refresh-logs">Actualiser ⟳</button>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="cyber-terminal">
+                <div class="terminal-header">
+                  <span class="term-dot red"></span>
+                  <span class="term-dot yellow"></span>
+                  <span class="term-dot green"></span>
+                  <span class="term-title">pulseguard-audit-feed — 127.0.0.1:48201</span>
+                </div>
+                <div class="terminal-body" id="audit-log-terminal">
+                  <!-- Logs stream here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Notification Toast Element -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

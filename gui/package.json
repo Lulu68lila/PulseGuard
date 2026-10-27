@@ -1,0 +1,21 @@
+{
+  "name": "pulseguard-gui",
+  "version": "0.2.0",
+  "description": "PulseGuard Next-Gen Antivirus Desktop GUI",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test_gui.js"
+  },
+  "keywords": [
+    "antivirus",
+    "security",
+    "pulseguard",
+    "electron"
+  ],
+  "author": "PulseGuard Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.1"
+  }
+}

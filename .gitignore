@@ -28,6 +28,12 @@ Thumbs.db
 .coverage
 htmlcov/
 
+# Node.js & Electron
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 # PulseGuard Runtime Vault & Logs
 .pulseguard_vault/
 *.locked
