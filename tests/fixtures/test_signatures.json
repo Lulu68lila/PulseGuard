@@ -1,0 +1,18 @@
+[
+  {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "threat_name": "Test.EmptyFile.Marker",
+    "threat_type": "signature",
+    "severity": "LOW",
+    "rule_matched": "SIG_TEST_EMPTY_FILE",
+    "details": "Test signature for verifying external JSON loader."
+  },
+  {
+    "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    "threat_name": "Trojan.PulseGuard.ExternalMock",
+    "threat_type": "trojan",
+    "severity": "CRITICAL",
+    "rule_matched": "SIG_TEST_EXTERNAL_MOCK",
+    "details": "Mock test trojan signature."
+  }
+]
