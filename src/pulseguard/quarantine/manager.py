@@ -33,7 +33,7 @@ class QuarantineManager:
         self._load_catalog()
 
     def _load_catalog(self) -> None:
-        """Load catalog from disk if present."""
+        """Load catalog from disk if present. Preserves corrupted catalog files."""
         if not self.catalog_file.exists():
             return
 
@@ -61,9 +61,17 @@ class QuarantineManager:
                     is_restored=item.get("is_restored", False),
                 )
                 self._records[record.record_id] = record
-        except Exception:
-            # If catalog is corrupted, start fresh but preserve files
-            pass
+        except Exception as exc:
+            # Preserve corrupted catalog file to prevent data loss on subsequent saves
+            backup_path = self.catalog_file.with_suffix(f".corrupt.{int(datetime.now().timestamp())}.json")
+            try:
+                self.catalog_file.replace(backup_path)
+            except OSError:
+                pass
+            raise QuarantineError(
+                f"Quarantine catalog was corrupted and backed up to '{backup_path.name}'. "
+                f"Error details: {exc}"
+            ) from exc
 
     def _save_catalog(self) -> None:
         """Persist catalog to disk."""
@@ -96,19 +104,12 @@ class QuarantineManager:
         if not target.exists() or not target.is_file():
             raise QuarantineError(f"Target file does not exist or is not a file: {target}")
 
-        file_hash = compute_sha256(target)
         plain_bytes = target.read_bytes()
+        # Compute hash directly from the in-memory payload being vaulted
+        file_hash = compute_sha256_bytes(plain_bytes)
 
         record_id = uuid.uuid4().hex[:12]
         vault_path = self.vault.encrypt_and_store(record_id, plain_bytes)
-
-        # Securely unlink the original infected file
-        try:
-            target.unlink()
-        except OSError as exc:
-            # Rollback vault file if unlinking failed
-            self.vault.secure_shred(vault_path)
-            raise QuarantineError(f"Failed to remove original file from filesystem: {exc}") from exc
 
         record = QuarantineRecord(
             record_id=record_id,
@@ -120,8 +121,29 @@ class QuarantineManager:
             is_restored=False,
         )
 
+        # Register and persist in catalog BEFORE removing source file
         self._records[record_id] = record
-        self._save_catalog()
+        try:
+            self._save_catalog()
+        except Exception as exc:
+            # Catalog write failed: shred encrypted vault copy and rollback
+            del self._records[record_id]
+            self.vault.secure_shred(vault_path)
+            raise QuarantineError(f"Failed to persist quarantine catalog: {exc}") from exc
+
+        # Once catalog persistence is confirmed, safely unlink original infected file
+        try:
+            target.unlink()
+        except OSError as exc:
+            # Unlinking failed: rollback catalog entry and vault file
+            del self._records[record_id]
+            try:
+                self._save_catalog()
+            except Exception:
+                pass
+            self.vault.secure_shred(vault_path)
+            raise QuarantineError(f"Failed to remove original file from filesystem: {exc}") from exc
+
         return record
 
     def restore_file(self, record_id: str, destination: Optional[Path] = None) -> Path:

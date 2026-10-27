@@ -87,3 +87,18 @@ def test_quarantine_module_level_helpers(tmp_path: Path):
 
     deleted = delete_quarantine(rec.record_id)
     assert deleted is True
+
+
+def test_manager_corrupted_catalog_preservation(tmp_path: Path):
+    vault_dir = tmp_path / "vault"
+    vault_dir.mkdir(parents=True, exist_ok=True)
+    catalog = vault_dir / "catalog.json"
+    catalog.write_text("{invalid_json_content", encoding="utf-8")
+
+    from pulseguard.quarantine.manager import QuarantineError
+    with pytest.raises(QuarantineError, match="corrupted and backed up"):
+        QuarantineManager(vault_dir=vault_dir)
+
+    # Verify backup file was created
+    backups = list(vault_dir.glob("*.corrupt.*.json"))
+    assert len(backups) == 1
