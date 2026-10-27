@@ -168,3 +168,7 @@ def status_cmd() -> None:
             is_watcher_running=False,
         )
     )
+
+
+if __name__ == "__main__":
+    cli()
