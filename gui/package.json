@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node test_gui.js"
+    "test": "node test_gui.js",
+    "dist": "electron-packager . PulseGuard --platform=win32 --arch=x64 --out=../dist --overwrite --prune=true"
   },
   "keywords": [
     "antivirus",
@@ -16,6 +17,7 @@
   "author": "PulseGuard Team",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^33.2.1"
+    "electron": "^33.2.1",
+    "electron-packager": "^17.1.2"
   }
 }

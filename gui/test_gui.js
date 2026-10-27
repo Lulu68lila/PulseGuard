@@ -75,6 +75,9 @@ const requiredIds = [
   'quarantine-tbody',
   'watcher-toggle-checkbox',
   'audit-log-terminal',
+  'ctrl-minimize',
+  'ctrl-maximize',
+  'ctrl-close',
 ];
 
 for (const id of requiredIds) {

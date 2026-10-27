@@ -5,6 +5,7 @@
 
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { spawn } = require('child_process');
 const http = require('http');
 
@@ -12,6 +13,24 @@ let mainWindow = null;
 let pythonProcess = null;
 const BACKEND_PORT = 48201;
 const BACKEND_HOST = '127.0.0.1';
+
+/**
+ * Robustly finds the PulseGuard repository root containing src/pulseguard.
+ */
+function findRepoRoot() {
+  const candidates = [
+    path.resolve(__dirname, '..'),
+    path.resolve(__dirname, '../../..'),
+    process.cwd(),
+    path.resolve(process.resourcesPath || __dirname, '../../..'),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, 'src', 'pulseguard'))) {
+      return c;
+    }
+  }
+  return path.resolve(__dirname, '..');
+}
 
 /**
  * Checks if the PulseGuard Python backend server is responding.
@@ -48,7 +67,7 @@ async function ensureBackendRunning() {
     return;
   }
 
-  const repoRoot = path.resolve(__dirname, '..');
+  const repoRoot = findRepoRoot();
   const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
   const env = {
     ...process.env,
@@ -92,13 +111,14 @@ async function ensureBackendRunning() {
  */
 function createMainWindow() {
   mainWindow = new BrowserWindow({
-    width: 1220,
+    width: 1240,
     height: 840,
     minWidth: 1000,
     minHeight: 680,
     title: 'PulseGuard — Cyberpunk Antivirus & Endpoint Shield',
     backgroundColor: '#07090e',
     show: false,
+    frame: false,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -118,6 +138,25 @@ function createMainWindow() {
     mainWindow = null;
   });
 }
+
+// Window control IPC handlers (Minimize, Maximize, Close)
+ipcMain.on('window:minimize', () => {
+  if (mainWindow) mainWindow.minimize();
+});
+
+ipcMain.on('window:maximize', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.on('window:close', () => {
+  if (mainWindow) mainWindow.close();
+});
 
 // Register native file/directory dialog IPC handlers
 ipcMain.handle('dialog:select-file', async () => {

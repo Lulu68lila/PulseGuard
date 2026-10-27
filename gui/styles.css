@@ -59,6 +59,89 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+  overflow: hidden;
+}
+
+/* --- Bitdefender-Style Custom Frameless Titlebar --- */
+.custom-titlebar {
+  height: 34px;
+  background: rgba(6, 9, 15, 0.98);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+}
+
+.titlebar-drag-region {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 14px;
+  -webkit-app-region: drag;
+}
+
+.titlebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.titlebar-brand svg {
+  width: 14px;
+  height: 14px;
+  color: var(--neon-cyan);
+}
+
+.titlebar-badge {
+  font-size: 0.58rem;
+  padding: 1px 6px;
+  background: rgba(0, 240, 255, 0.12);
+  color: var(--neon-cyan);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.titlebar-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  width: 46px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.titlebar-btn svg {
+  width: 10px;
+  height: 10px;
+}
+
+.titlebar-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.titlebar-btn.btn-close:hover {
+  background: #e81123 !important;
+  color: #ffffff !important;
 }
 
 /* --- Topbar --- */

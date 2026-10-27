@@ -19,6 +19,7 @@ const appState = {
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+  setupWindowControls();
   setupNavigation();
   setupScanControls();
   setupProcessControls();
@@ -35,6 +36,29 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(fetchStatus, 3000);
   setInterval(fetchEvents, 4000);
 });
+
+// --- Window Controls (Minimize, Maximize, Close) ---
+function setupWindowControls() {
+  document.getElementById('ctrl-minimize')?.addEventListener('click', () => {
+    if (window.pulseguard?.minimize) {
+      window.pulseguard.minimize();
+    }
+  });
+
+  document.getElementById('ctrl-maximize')?.addEventListener('click', () => {
+    if (window.pulseguard?.maximize) {
+      window.pulseguard.maximize();
+    }
+  });
+
+  document.getElementById('ctrl-close')?.addEventListener('click', () => {
+    if (window.pulseguard?.close) {
+      window.pulseguard.close();
+    } else {
+      window.close();
+    }
+  });
+}
 
 // --- Tab Navigation ---
 function setupNavigation() {
