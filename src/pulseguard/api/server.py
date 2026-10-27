@@ -2,7 +2,9 @@
 
 import json
 import logging
+import tempfile
 import threading
+import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -29,6 +31,139 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 48201
 
 
+class ActiveScanTask:
+    """Manages real-time asynchronous file scanning with live progress reporting."""
+
+    def __init__(self) -> None:
+        self.lock = threading.Lock()
+        self.is_running: bool = False
+        self.should_stop: bool = False
+        self.scan_type: str = "custom"
+        self.current_file: str = ""
+        self.scanned_count: int = 0
+        self.infected_count: int = 0
+        self.quarantined_count: int = 0
+        self.total_target_files: int = 0
+        self.progress_percent: int = 0
+        self.start_time: float = 0.0
+        self.elapsed_seconds: float = 0.0
+        self.results: List[Dict[str, Any]] = []
+        self._thread: Optional[threading.Thread] = None
+
+    def start_scan(
+        self,
+        paths: List[Path],
+        scan_type: str = "custom",
+        recursive: bool = True,
+        auto_quarantine: bool = True,
+    ) -> None:
+        with self.lock:
+            if self.is_running:
+                self.should_stop = True
+                if self._thread and self._thread.is_alive():
+                    self._thread.join(timeout=1.0)
+            self.is_running = True
+            self.should_stop = False
+            self.scan_type = scan_type
+            self.current_file = "Recherche des fichiers..."
+            self.scanned_count = 0
+            self.infected_count = 0
+            self.quarantined_count = 0
+            self.progress_percent = 0
+            self.start_time = time.time()
+            self.elapsed_seconds = 0.0
+            self.results = []
+
+        def worker() -> None:
+            file_targets: List[Path] = []
+            for p in paths:
+                if self.should_stop:
+                    break
+                if p.is_file():
+                    file_targets.append(p)
+                elif p.is_dir():
+                    try:
+                        scan_glob = p.glob("**/*" if recursive else "*")
+                        for sub in scan_glob:
+                            if self.should_stop:
+                                break
+                            if sub.is_file():
+                                file_targets.append(sub)
+                                if len(file_targets) >= 2500:
+                                    break
+                    except Exception as err:
+                        logger.debug("Glob error on %s: %s", p, err)
+
+            with self.lock:
+                self.total_target_files = max(len(file_targets), 1)
+
+            for idx, item in enumerate(file_targets):
+                if self.should_stop:
+                    break
+                with self.lock:
+                    self.current_file = str(item)
+                    self.elapsed_seconds = time.time() - self.start_time
+                    self.progress_percent = min(int((idx / self.total_target_files) * 100), 99)
+
+                res = _default_engine.scan_file(item)
+                is_inf = res.is_infected
+                threat_name = res.threat.threat_name if res.threat else None
+                q_id = None
+
+                if is_inf:
+                    with self.lock:
+                        self.infected_count += 1
+                    if auto_quarantine and res.threat and item.exists():
+                        try:
+                            q_rec = quarantine_file(item, res.threat)
+                            q_id = q_rec.record_id
+                            with self.lock:
+                                self.quarantined_count += 1
+                        except Exception as q_exc:
+                            logger.error("Failed to quarantine %s: %s", item, q_exc)
+
+                with self.lock:
+                    self.scanned_count += 1
+                    self.results.append({
+                        "file_path": str(res.file_path),
+                        "status": res.status.value,
+                        "is_infected": is_inf,
+                        "file_hash": res.file_hash,
+                        "threat_name": threat_name,
+                        "scan_duration_ms": res.scan_duration_ms,
+                        "quarantine_id": q_id,
+                    })
+
+            with self.lock:
+                self.progress_percent = 100
+                self.elapsed_seconds = time.time() - self.start_time
+                self.is_running = False
+                self.current_file = "Analyse terminée."
+
+        self._thread = threading.Thread(target=worker, daemon=True)
+        self._thread.start()
+
+    def stop_scan(self) -> None:
+        with self.lock:
+            self.should_stop = True
+            self.is_running = False
+
+    def get_progress(self) -> Dict[str, Any]:
+        with self.lock:
+            elapsed = time.time() - self.start_time if self.is_running else self.elapsed_seconds
+            return {
+                "running": self.is_running,
+                "scan_type": self.scan_type,
+                "current_file": self.current_file,
+                "scanned_count": self.scanned_count,
+                "infected_count": self.infected_count,
+                "quarantined_count": self.quarantined_count,
+                "progress_percent": self.progress_percent,
+                "elapsed_seconds": round(elapsed, 1),
+                "results": list(self.results),
+            }
+
+
 class APIState:
     """Shared state container for the local REST API."""
 
@@ -38,6 +173,7 @@ class APIState:
         self.watched_path: Optional[Path] = None
         self.auto_quarantine_live: bool = False
         self.recent_events: List[Dict[str, Any]] = []
+        self.active_scan: ActiveScanTask = ActiveScanTask()
 
     def set_watcher(self, path: Path, auto_quarantine: bool = False) -> None:
         with self.lock:
@@ -123,6 +259,8 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
             self.handle_get_processes(query)
         elif path == "/api/events":
             self.handle_get_events()
+        elif path == "/api/scan/progress":
+            self.handle_get_scan_progress()
         else:
             self._send_json_response({"error": f"Endpoint not found: {path}"}, status=HTTPStatus.NOT_FOUND)
 
@@ -138,6 +276,10 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
 
         if path == "/api/scan":
             self.handle_post_scan(body)
+        elif path == "/api/scan/start":
+            self.handle_post_scan_start(body)
+        elif path == "/api/scan/stop":
+            self.handle_post_scan_stop()
         elif path == "/api/watch/toggle":
             self.handle_post_watch_toggle(body)
         elif path == "/api/quarantine/restore":
@@ -209,6 +351,37 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
             "scanned_count": len(results_list),
             "infected_count": infected_count,
         })
+
+    def handle_post_scan_start(self, body: Dict[str, Any]) -> None:
+        scan_type = body.get("scan_type", "custom")
+        raw_path = body.get("path")
+        recursive = bool(body.get("recursive", True))
+        auto_q = bool(body.get("quarantine", True))
+
+        target_paths: List[Path] = []
+        if scan_type == "quick":
+            user_home = Path.home()
+            for cand in [user_home / "Downloads", user_home / "Desktop", Path(tempfile.gettempdir())]:
+                if cand.exists():
+                    target_paths.append(cand)
+        elif scan_type == "system":
+            user_home = Path.home()
+            target_paths.append(user_home)
+        else:
+            if not raw_path:
+                self._send_json_response({"error": "Missing 'path' parameter for custom scan"}, status=HTTPStatus.BAD_REQUEST)
+                return
+            target_paths.append(Path(raw_path))
+
+        state.active_scan.start_scan(target_paths, scan_type=scan_type, recursive=recursive, auto_quarantine=auto_q)
+        self._send_json_response({"started": True, "scan_type": scan_type, "targets": [str(p) for p in target_paths]})
+
+    def handle_get_scan_progress(self) -> None:
+        self._send_json_response(state.active_scan.get_progress())
+
+    def handle_post_scan_stop(self) -> None:
+        state.active_scan.stop_scan()
+        self._send_json_response({"stopped": True})
 
     def handle_post_watch_toggle(self, body: Dict[str, Any]) -> None:
         activate = bool(body.get("active", False))
@@ -335,6 +508,7 @@ class PulseGuardAPIServer:
             self._thread.start()
 
     def stop(self) -> None:
+        state.active_scan.stop_scan()
         if self.server:
             self.server.shutdown()
             self.server.server_close()

@@ -141,3 +141,31 @@ def test_api_error_handling(api_server):
         make_request("POST", "/api/scan", {})
     except urllib.error.HTTPError as exc:
         assert exc.code == 400
+
+
+def test_async_scan_workflow(api_server, tmp_path: Path):
+    clean_sample = tmp_path / "stream_clean.txt"
+    clean_sample.write_text("Hello benign streaming scanner\n", encoding="utf-8")
+
+    # Start custom scan
+    status, start_data, _ = make_request("POST", "/api/scan/start", {
+        "scan_type": "custom",
+        "path": str(tmp_path),
+        "recursive": False,
+        "quarantine": True,
+    })
+    assert status == 200
+    assert start_data["started"] is True
+
+    # Poll progress
+    time.sleep(0.3)
+    status, prog_data, _ = make_request("GET", "/api/scan/progress")
+    assert status == 200
+    assert "running" in prog_data
+    assert "scanned_count" in prog_data
+    assert "progress_percent" in prog_data
+
+    # Test stop scan
+    status, stop_data, _ = make_request("POST", "/api/scan/stop")
+    assert status == 200
+    assert stop_data["stopped"] is True

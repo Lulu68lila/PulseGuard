@@ -115,7 +115,7 @@ function createMainWindow() {
     height: 840,
     minWidth: 1000,
     minHeight: 680,
-    title: 'PulseGuard — Cyberpunk Antivirus & Endpoint Shield',
+    title: 'PulseGuard Total Security',
     backgroundColor: '#07090e',
     show: false,
     frame: false,

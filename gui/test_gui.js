@@ -1,6 +1,6 @@
 /**
  * PulseGuard GUI Automated Verification & Linting Suite.
- * Validates file structure, syntax parsing, and HTML DOM elements.
+ * Validates file structure, syntax parsing, and HTML DOM elements for Bitdefender Edition.
  */
 
 const fs = require('fs');
@@ -61,23 +61,24 @@ for (const file of jsFiles) {
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
 const requiredIds = [
   'pill-engine-status',
-  'pill-watcher-status',
   'pane-dashboard',
-  'pane-scanner',
+  'pane-protection',
   'pane-processes',
   'pane-quarantine',
-  'pane-watcher',
   'pane-audit',
   'btn-start-scan',
   'scan-target-path',
   'scan-results-tbody',
   'processes-tbody',
   'quarantine-tbody',
-  'watcher-toggle-checkbox',
   'audit-log-terminal',
   'ctrl-minimize',
   'ctrl-maximize',
   'ctrl-close',
+  'scan-overlay',
+  'overlay-progress-percent',
+  'overlay-current-file',
+  'toast-container',
 ];
 
 for (const id of requiredIds) {
@@ -86,14 +87,15 @@ for (const id of requiredIds) {
 
 // 5. Validate CSS rules
 const css = fs.readFileSync(path.join(__dirname, 'styles.css'), 'utf-8');
-assert(css.includes('--bg-canvas: #090d16;'), 'CSS contains enterprise slate palette');
-assert(css.includes('.hero-status-card'), 'CSS contains hero status card style');
-assert(css.includes('.enterprise-table'), 'CSS contains enterprise table style');
-assert(css.includes('.window-titlebar'), 'CSS contains integrated titlebar style');
+assert(css.includes('--bd-bg-canvas: #0c1017;'), 'CSS contains Bitdefender palette');
+assert(css.includes('.bitdefender-hero'), 'CSS contains Bitdefender hero style');
+assert(css.includes('.bitdefender-scan-overlay'), 'CSS contains scan overlay style');
+assert(css.includes('.bd-notification'), 'CSS contains floating notification card style');
+assert(css.includes('.toast-anchor-left'), 'CSS anchors notifications to bottom-left');
 
 console.log('------------------------------------');
 if (errors === 0) {
-  console.log('🎉 ALL 28 GUI VERIFICATION CHECKS PASSED SUCCESSFULLY!');
+  console.log('🎉 ALL GUI VERIFICATION CHECKS PASSED SUCCESSFULLY!');
   process.exit(0);
 } else {
   console.error(`💥 ${errors} checks failed.`);
