@@ -81,6 +81,7 @@ async function ensureBackendRunning() {
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
+    shell: process.platform === 'win32',
   });
 
   pythonProcess.stdout.on('data', (data) => {
