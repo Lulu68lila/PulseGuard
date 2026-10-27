@@ -4,265 +4,358 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
-  <title>PulseGuard — Endpoint Protection & Threat Shield</title>
+  <title>PulseGuard Endpoint Protection</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Bitdefender-Style Custom Frameless Titlebar -->
-    <div class="custom-titlebar">
-      <div class="titlebar-drag-region">
+  <div class="app-window">
+    <!-- Sleek Integrated Titlebar (Bitdefender / Windows 11 Security Style) -->
+    <header class="window-titlebar">
+      <div class="titlebar-drag">
         <div class="titlebar-brand">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="brand-logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="M7 12h3l2-4 2 8 2-4h3" stroke="#00f0ff" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span class="titlebar-name">PulseGuard Endpoint Shield</span>
-          <span class="titlebar-badge">OFFICIAL SUITE</span>
-        </div>
-      </div>
-      <div class="titlebar-controls">
-        <button class="titlebar-btn btn-min" id="ctrl-minimize" title="Réduire">
-          <svg viewBox="0 0 10 10"><rect y="4.5" width="10" height="1" fill="currentColor"/></svg>
-        </button>
-        <button class="titlebar-btn btn-max" id="ctrl-maximize" title="Agrandir / Restaurer">
-          <svg viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-        </button>
-        <button class="titlebar-btn btn-close" id="ctrl-close" title="Fermer PulseGuard">
-          <svg viewBox="0 0 10 10"><polygon points="10 0.8 9.2 0 5 4.2 0.8 0 0 0.8 4.2 5 0 9.2 0.8 10 5 5.8 9.2 10 10 9.2 5.8 5" fill="currentColor"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Top Cyberpunk Bar -->
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="M7 12h3l2-4 2 8 2-4h3" stroke="#00f0ff" stroke-width="2.2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          <span class="brand-name">PULSE<span class="highlight">GUARD</span></span>
-          <span class="brand-sub">NEXT-GEN ENDPOINT SECURITY v0.2.0</span>
+          <span class="brand-title">PulseGuard</span>
+          <span class="brand-edition">Endpoint Protection</span>
         </div>
       </div>
 
-      <div class="system-pills">
-        <div class="pill pill-engine" id="pill-engine-status">
-          <span class="dot pulse-green"></span>
-          <span class="label">MOTEUR :</span>
-          <span class="value" id="engine-status-text">CONNEXION...</span>
+      <!-- Live Engine Telemetry Pills in Titlebar -->
+      <div class="titlebar-telemetry">
+        <div class="telemetry-pill" id="pill-engine-status">
+          <span class="status-indicator-dot online"></span>
+          <span class="pill-tag">MOTEUR</span>
+          <span class="pill-value" id="engine-status-text">ONLINE</span>
         </div>
-        <div class="pill pill-vault">
-          <span class="icon">🔒</span>
-          <span class="label">VAULT :</span>
-          <span class="value" id="top-vault-count">0 ISOLÉS</span>
+        <div class="telemetry-pill" id="pill-quarantine-status">
+          <svg class="pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span class="pill-tag">ISOLÉS</span>
+          <span class="pill-value" id="top-vault-count">0</span>
         </div>
-        <div class="pill pill-watcher" id="pill-watcher-status">
-          <span class="dot"></span>
-          <span class="label">SENTINELLE :</span>
-          <span class="value" id="top-watcher-text">INACTIVE</span>
+        <div class="telemetry-pill" id="pill-watcher-status">
+          <span class="status-indicator-dot" id="watcher-indicator-dot"></span>
+          <span class="pill-tag">VEILLE</span>
+          <span class="pill-value" id="top-watcher-text">INACTIF</span>
         </div>
+      </div>
+
+      <!-- Native Frameless Window Controls -->
+      <div class="window-controls">
+        <button class="win-btn win-min" id="ctrl-minimize" title="Réduire">
+          <svg viewBox="0 0 12 12"><path d="M1 6h10" stroke="currentColor" stroke-width="1.2"/></svg>
+        </button>
+        <button class="win-btn win-max" id="ctrl-maximize" title="Agrandir / Restaurer">
+          <svg viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+        </button>
+        <button class="win-btn win-close" id="ctrl-close" title="Fermer">
+          <svg viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.2"/></svg>
+        </button>
       </div>
     </header>
 
-    <!-- App Body with Sidebar & Views -->
-    <div class="main-layout">
-      <!-- Cyber Sidebar Navigation -->
-      <nav class="sidebar">
-        <div class="nav-section-title">NAVIGATION PRINCIPALE</div>
-        <ul class="nav-list">
-          <li class="nav-item active" data-tab="dashboard">
-            <span class="nav-icon">🛡️</span>
-            <span class="nav-label">Tableau de Bord</span>
-          </li>
-          <li class="nav-item" data-tab="scanner">
-            <span class="nav-icon">🔍</span>
-            <span class="nav-label">Scanner de Fichiers</span>
-          </li>
-          <li class="nav-item" data-tab="processes">
-            <span class="nav-icon">🧠</span>
-            <span class="nav-label">Mémoire Vive (RAM)</span>
-          </li>
-          <li class="nav-item" data-tab="quarantine">
-            <span class="nav-icon">📦</span>
-            <span class="nav-label">Coffre Quarantaine</span>
-            <span class="badge" id="nav-quarantine-badge">0</span>
-          </li>
-          <li class="nav-item" data-tab="watcher">
-            <span class="nav-icon">👁️</span>
-            <span class="nav-label">Sentinelle Temps Réel</span>
-          </li>
-          <li class="nav-item" data-tab="audit">
-            <span class="nav-icon">📜</span>
-            <span class="nav-label">Journal d'Audit</span>
-          </li>
-        </ul>
+    <!-- Main Workspace Layout -->
+    <div class="workspace-body">
+      <!-- Modern Slate Navigation Sidebar -->
+      <nav class="sidebar-nav">
+        <div class="sidebar-menu">
+          <div class="menu-label">PROTECTION</div>
+          <ul class="nav-tree">
+            <li class="nav-link active" data-tab="dashboard">
+              <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span>Tableau de bord</span>
+            </li>
+            <li class="nav-link" data-tab="scanner">
+              <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <span>Analyseur de fichiers</span>
+            </li>
+            <li class="nav-link" data-tab="processes">
+              <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                <rect x="9" y="9" width="6" height="6"/>
+                <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>
+              </svg>
+              <span>Processus & RAM</span>
+            </li>
+            <li class="nav-link" data-tab="quarantine">
+              <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <span>Coffre de quarantaine</span>
+              <span class="nav-count-badge" id="nav-quarantine-badge">0</span>
+            </li>
+            <li class="nav-link" data-tab="watcher">
+              <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span>Sentinelle temps réel</span>
+            </li>
+          </ul>
 
-        <div class="sidebar-footer">
-          <div class="crypto-tag">AES-256-GCM / SHA-256</div>
-          <div class="host-info">PC-LUCAS · 127.0.0.1:48201</div>
+          <div class="menu-label mt-section">SUPERVISION</div>
+          <ul class="nav-tree">
+            <li class="nav-link" data-tab="audit">
+              <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <polyline points="4 17 10 11 4 5"/>
+                <line x1="12" y1="19" x2="20" y2="19"/>
+              </svg>
+              <span>Journal des événements</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="sidebar-status-box">
+          <div class="status-shield-row">
+            <div class="secure-icon-glow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div class="status-meta">
+              <div class="status-state-text" id="sidebar-protection-state">Bouclier Actif</div>
+              <div class="status-sub-text">AES-256 · SHA-256</div>
+            </div>
+          </div>
+          <div class="host-pill">PC-LUCAS · 127.0.0.1:48201</div>
         </div>
       </nav>
 
-      <!-- Main Content Container -->
-      <main class="content-viewport">
+      <!-- Main Content Viewport -->
+      <main class="main-viewport">
 
         <!-- ================= TAB 1: DASHBOARD ================= -->
-        <section class="tab-pane active" id="pane-dashboard">
-          <div class="hero-shield-card">
-            <div class="radar-container">
-              <div class="radar-ring ring-outer"></div>
-              <div class="radar-ring ring-middle"></div>
-              <div class="radar-ring ring-inner"></div>
-              <div class="radar-sweep"></div>
-              <div class="shield-core" id="shield-core-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2"/>
-                  <polyline points="9 12 11 14 15 10" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <section class="view-panel active" id="pane-dashboard">
+          <!-- Premium Security Status Hero Card -->
+          <div class="hero-status-card" id="dashboard-hero-card">
+            <div class="hero-shield-halo">
+              <div class="halo-circle outer"></div>
+              <div class="halo-circle inner"></div>
+              <div class="shield-center-emblem" id="hero-shield-emblem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
             </div>
 
-            <div class="shield-info">
-              <div class="shield-status-badge status-protected" id="dashboard-shield-badge">
-                SYSTÈME SÉCURISÉ & PROTÉGÉ
+            <div class="hero-content">
+              <div class="protection-chip protected" id="dashboard-shield-badge">
+                <span class="chip-dot"></span>
+                <span>PROTECTION COMPLÈTE ACTIVE</span>
               </div>
-              <h1 class="shield-title">PulseGuard Endpoint Shield</h1>
-              <p class="shield-desc">
-                Surveillance heuristique hybride, détection de motifs d'octets et isolation immédiate chiffrée.
+              <h1 class="hero-headline">Votre terminal est sous surveillance continue</h1>
+              <p class="hero-summary">
+                Moteur heuristique hybride actif. Analyse par empreintes SHA-256 et motifs d'octets avec isolation cryptographique instantanée.
               </p>
 
-              <div class="quick-buttons">
-                <button class="btn btn-primary" id="btn-quick-scan-downloads">
-                  ⚡ Scan Rapide (Téléchargements)
+              <div class="hero-actions-toolbar">
+                <button class="btn btn-primary-action" id="btn-quick-scan-downloads">
+                  <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                  <span>Scan rapide (Téléchargements)</span>
                 </button>
-                <button class="btn btn-outline" id="btn-goto-scanner">
-                  📂 Analyse Ciblée
+                <button class="btn btn-subtle" id="btn-goto-scanner">
+                  <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  <span>Analyse ciblée</span>
                 </button>
-                <button class="btn btn-outline" id="btn-goto-processes">
-                  🧠 Vérifier la RAM
+                <button class="btn btn-subtle" id="btn-goto-processes">
+                  <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="4" width="16" height="16" rx="2"/>
+                    <rect x="9" y="9" width="6" height="6"/>
+                  </svg>
+                  <span>Auditer la RAM</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- 4 Stats Cards -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon-wrapper cyan">🧬</div>
-              <div class="stat-meta">
-                <div class="stat-value" id="stat-signatures">4</div>
-                <div class="stat-label">Signatures & Motifs</div>
+          <!-- Enterprise Metric Cards Grid -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">Signatures & Motifs</span>
+                <div class="metric-icon-box blue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                </div>
               </div>
+              <div class="metric-number" id="stat-signatures">4</div>
+              <div class="metric-footer">Base locale synchronisée</div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-icon-wrapper red">☣️</div>
-              <div class="stat-meta">
-                <div class="stat-value" id="stat-quarantine-count">0</div>
-                <div class="stat-label">Menaces Neutralisées</div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">Menaces neutralisées</span>
+                <div class="metric-icon-box amber">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
               </div>
+              <div class="metric-number" id="stat-quarantine-count">0</div>
+              <div class="metric-footer">Fichiers isolés dans le coffre</div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-icon-wrapper green">👁️</div>
-              <div class="stat-meta">
-                <div class="stat-value" id="stat-watcher-status">INACTIF</div>
-                <div class="stat-label">Sentinelle Répertoire</div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">Veille continue</span>
+                <div class="metric-icon-box emerald">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </div>
               </div>
+              <div class="metric-number status-text-sm" id="stat-watcher-status">Inactif</div>
+              <div class="metric-footer" id="stat-watcher-footer">Surveillance de répertoire</div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-icon-wrapper purple">🔐</div>
-              <div class="stat-meta">
-                <div class="stat-value">AES-256</div>
-                <div class="stat-label">Coffre Quarantaine</div>
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">Chiffrement coffre</span>
+                <div class="metric-icon-box purple">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
               </div>
+              <div class="metric-number code-font">AES-GCM</div>
+              <div class="metric-footer">Clé unique par payload (.pgvault)</div>
             </div>
           </div>
 
-          <!-- Recent Activity Banner -->
-          <div class="card recent-activity-card">
-            <div class="card-header">
-              <h3>📡 Événements Récents du Système</h3>
-              <button class="btn-text" id="btn-refresh-dashboard">Actualiser ⟳</button>
+          <!-- Recent Activity Card -->
+          <div class="slate-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3 class="panel-title">Activité récente du système</h3>
+                <span class="panel-subtitle">Derniers événements enregistrés par le moteur d'analyse</span>
+              </div>
+              <button class="btn btn-icon-text" id="btn-refresh-dashboard">
+                <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+                <span>Actualiser</span>
+              </button>
             </div>
-            <div class="card-body" id="dashboard-recent-events">
-              <div class="empty-state">Aucun événement suspect récent détecté. Tout est calme.</div>
+            <div class="panel-body" id="dashboard-recent-events">
+              <div class="empty-state-notice">
+                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span>Aucune menace récente détectée sur le système. Les défenses sont au vert.</span>
+              </div>
             </div>
           </div>
         </section>
 
         <!-- ================= TAB 2: FILE SCANNER ================= -->
-        <section class="tab-pane" id="pane-scanner">
-          <div class="card">
-            <div class="card-header">
-              <h2>🔍 Analyseur de Menaces sur le Système de Fichiers</h2>
-              <span class="sub-text">Scannez des fichiers individuels ou des répertoires entiers en profondeur</span>
+        <section class="view-panel" id="pane-scanner">
+          <div class="slate-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h2 class="panel-title">Analyseur de menaces</h2>
+                <span class="panel-subtitle">Vérification de l'intégrité des fichiers et détection d'artefacts malveillants</span>
+              </div>
             </div>
 
-            <div class="card-body">
-              <div class="scan-input-group">
-                <div class="input-wrapper">
-                  <input type="text" id="scan-target-path" placeholder="Sélectionnez ou collez un chemin de fichier ou dossier..." spellcheck="false">
+            <div class="panel-body">
+              <div class="target-picker-bar">
+                <div class="target-input-shell">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  <input type="text" id="scan-target-path" placeholder="Sélectionnez ou saisissez un chemin à analyser..." spellcheck="false">
                 </div>
-                <button class="btn btn-secondary" id="btn-browse-file">📄 Fichier...</button>
-                <button class="btn btn-secondary" id="btn-browse-folder">📁 Dossier...</button>
-              </div>
-
-              <div class="scan-options-row">
-                <label class="cyber-checkbox">
-                  <input type="checkbox" id="scan-opt-recursive" checked>
-                  <span class="checkmark"></span>
-                  <span class="opt-label">Analyser les sous-dossiers récursivement</span>
-                </label>
-
-                <label class="cyber-checkbox">
-                  <input type="checkbox" id="scan-opt-quarantine" checked>
-                  <span class="checkmark"></span>
-                  <span class="opt-label">Mettre immédiatement en quarantaine les fichiers infectés</span>
-                </label>
-
-                <button class="btn btn-danger-action" id="btn-start-scan">
-                  ⚡ DÉMARRER LE SCAN
+                <button class="btn btn-secondary" id="btn-browse-file">
+                  <span>Parcourir fichier</span>
+                </button>
+                <button class="btn btn-secondary" id="btn-browse-folder">
+                  <span>Parcourir dossier</span>
                 </button>
               </div>
 
-              <!-- Animated Progress Bar -->
-              <div class="scan-progress-box" id="scan-progress-box" style="display: none;">
-                <div class="progress-info-row">
-                  <span id="scan-progress-status">Analyse en cours...</span>
-                  <span id="scan-progress-percent">50%</span>
+              <div class="scan-options-strip">
+                <label class="clean-checkbox">
+                  <input type="checkbox" id="scan-opt-recursive" checked>
+                  <span class="checkbox-box"></span>
+                  <span class="checkbox-text">Analyser les sous-dossiers récursivement</span>
+                </label>
+
+                <label class="clean-checkbox">
+                  <input type="checkbox" id="scan-opt-quarantine" checked>
+                  <span class="checkbox-box"></span>
+                  <span class="checkbox-text">Mettre immédiatement en quarantaine les menaces identifiées</span>
+                </label>
+
+                <button class="btn btn-primary-action" id="btn-start-scan">
+                  <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                  <span>Lancer l'analyse</span>
+                </button>
+              </div>
+
+              <!-- Animated Scan Progress Bar -->
+              <div class="scan-progress-container" id="scan-progress-box" style="display: none;">
+                <div class="progress-label-row">
+                  <span class="progress-status-desc" id="scan-progress-status">Analyse en cours...</span>
+                  <span class="progress-percent-val" id="scan-progress-percent">0%</span>
                 </div>
-                <div class="cyber-progress-track">
-                  <div class="cyber-progress-bar" id="scan-progress-bar"></div>
+                <div class="progress-track">
+                  <div class="progress-bar-fill" id="scan-progress-bar"></div>
                 </div>
               </div>
 
-              <!-- Results Area -->
-              <div class="scan-results-box" id="scan-results-box" style="display: none;">
-                <div class="results-summary-strip" id="scan-summary-strip">
-                  <div class="summary-item"><span class="sum-count" id="res-total-scanned">0</span> fichiers analysés</div>
-                  <div class="summary-item sum-infected"><span class="sum-count" id="res-total-infected">0</span> menaces détectées</div>
-                  <div class="summary-item sum-quarantined"><span class="sum-count" id="res-total-quarantined">0</span> neutralisés</div>
+              <!-- Scan Results Table -->
+              <div class="scan-results-wrapper" id="scan-results-box" style="display: none;">
+                <div class="results-kpi-bar">
+                  <div class="kpi-cell">
+                    <span class="kpi-label">Fichiers examinés</span>
+                    <span class="kpi-val" id="res-total-scanned">0</span>
+                  </div>
+                  <div class="kpi-cell danger">
+                    <span class="kpi-label">Menaces détectées</span>
+                    <span class="kpi-val" id="res-total-infected">0</span>
+                  </div>
+                  <div class="kpi-cell success">
+                    <span class="kpi-label">Objets neutralisés</span>
+                    <span class="kpi-val" id="res-total-quarantined">0</span>
+                  </div>
                 </div>
 
-                <div class="table-responsive">
-                  <table class="cyber-table" id="table-scan-results">
+                <div class="table-frame">
+                  <table class="enterprise-table" id="table-scan-results">
                     <thead>
                       <tr>
                         <th>STATUT</th>
                         <th>FICHIER</th>
                         <th>MENACE</th>
-                        <th>HASH SHA-256</th>
-                        <th>QUARANTAINE</th>
+                        <th>EMPREINTE SHA-256</th>
+                        <th>ISOLATION</th>
                       </tr>
                     </thead>
                     <tbody id="scan-results-tbody">
-                      <!-- Rows injected dynamically -->
+                      <!-- Results injected here -->
                     </tbody>
                   </table>
                 </div>
@@ -272,31 +365,41 @@
         </section>
 
         <!-- ================= TAB 3: PROCESS MEMORY SCANNER ================= -->
-        <section class="tab-pane" id="pane-processes">
-          <div class="card">
-            <div class="card-header">
-              <h2>🧠 Inspection de la Mémoire Vive (Processus Actifs)</h2>
-              <div class="header-actions">
-                <input type="text" id="filter-processes-input" placeholder="Filtrer processus par nom..." class="mini-search">
-                <button class="btn btn-primary" id="btn-scan-processes">Scanner les Processus ⚡</button>
+        <section class="view-panel" id="pane-processes">
+          <div class="slate-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h2 class="panel-title">Inspection de la mémoire vive (RAM)</h2>
+                <span class="panel-subtitle">Analyse en temps réel des processus et binaires exécutables chargés</span>
+              </div>
+              <div class="panel-actions">
+                <input type="text" id="filter-processes-input" placeholder="Filtrer par nom ou PID..." class="clean-search-input">
+                <button class="btn btn-primary-action" id="btn-scan-processes">
+                  <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                  </svg>
+                  <span>Analyser les processus</span>
+                </button>
               </div>
             </div>
 
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="cyber-table">
+            <div class="panel-body">
+              <div class="table-frame">
+                <table class="enterprise-table">
                   <thead>
                     <tr>
-                      <th>PID</th>
-                      <th>NOM</th>
-                      <th>CHEMIN DE L'EXÉCUTABLE</th>
-                      <th>STATUT MÉMOIRE</th>
-                      <th>MENACE</th>
+                      <th style="width: 90px;">PID</th>
+                      <th style="width: 220px;">NOM DU PROCESSUS</th>
+                      <th>EXÉCUTABLE ASSOCIE</th>
+                      <th style="width: 140px;">STATUT</th>
+                      <th style="width: 180px;">DÉTECTION</th>
                     </tr>
                   </thead>
                   <tbody id="processes-tbody">
                     <tr>
-                      <td colspan="5" class="empty-state">Cliquez sur « Scanner les Processus » pour inspecter la RAM système.</td>
+                      <td colspan="5" class="empty-state-cell">
+                        Cliquez sur « Analyser les processus » pour inspecter les exécutables actifs en mémoire.
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -306,40 +409,46 @@
         </section>
 
         <!-- ================= TAB 4: QUARANTINE VAULT ================= -->
-        <section class="tab-pane" id="pane-quarantine">
-          <div class="card">
-            <div class="card-header">
-              <h2>📦 Coffre-fort de Quarantaine (Isolation AES-256-GCM)</h2>
-              <div class="header-actions">
-                <button class="btn btn-secondary" id="btn-refresh-quarantine">Actualiser ⟳</button>
+        <section class="view-panel" id="pane-quarantine">
+          <div class="slate-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h2 class="panel-title">Coffre-fort de quarantaine</h2>
+                <span class="panel-subtitle">Fichiers neutralisés et chiffrés sous clé AES-256-GCM (.pgvault)</span>
               </div>
+              <button class="btn btn-icon-text" id="btn-refresh-quarantine">
+                <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+                <span>Actualiser</span>
+              </button>
             </div>
 
-            <div class="card-body">
-              <div class="vault-meta-banner">
-                <div class="vault-meta-item">
-                  <span class="meta-label">Protection Cryptographique :</span>
-                  <span class="meta-val">AES-256-GCM Authentifié avec Clé Unique</span>
+            <div class="panel-body">
+              <div class="vault-info-banner">
+                <div class="banner-cell">
+                  <span class="banner-label">Protocole d'isolation</span>
+                  <span class="banner-val">AES-256-GCM Authentifié</span>
                 </div>
-                <div class="vault-meta-item">
-                  <span class="meta-label">Extension Neutre :</span>
-                  <span class="meta-val"><code>.pgvault</code> (Inoffensif sur disque)</span>
+                <div class="banner-cell">
+                  <span class="banner-label">Format de neutralisation</span>
+                  <span class="banner-val code-font">.pgvault</span>
                 </div>
-                <div class="vault-meta-item">
-                  <span class="meta-label">Dossier Coffre :</span>
-                  <span class="meta-val" id="vault-dir-label">Chargement...</span>
+                <div class="banner-cell flex-wide">
+                  <span class="banner-label">Emplacement du coffre</span>
+                  <span class="banner-val code-font" id="vault-dir-label">Initialisation...</span>
                 </div>
               </div>
 
-              <div class="table-responsive">
-                <table class="cyber-table">
+              <div class="table-frame">
+                <table class="enterprise-table">
                   <thead>
                     <tr>
-                      <th>DATE</th>
-                      <th>CHEMIN D'ORIGINE</th>
-                      <th>MENACE</th>
-                      <th>GRAVITÉ</th>
-                      <th>ACTIONS</th>
+                      <th style="width: 160px;">DATE D'ISOLATION</th>
+                      <th>FICHIER D'ORIGINE</th>
+                      <th style="width: 200px;">MENACE IDENTIFIÉE</th>
+                      <th style="width: 110px;">GRAVITÉ</th>
+                      <th style="width: 190px;">ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody id="quarantine-tbody">
@@ -352,60 +461,72 @@
         </section>
 
         <!-- ================= TAB 5: WATCHER SENTINEL ================= -->
-        <section class="tab-pane" id="pane-watcher">
-          <div class="card">
-            <div class="card-header">
-              <h2>👁️ Sentinelle en Temps Réel (Watchdog)</h2>
-              <span class="sub-text">Interception automatique dès l'écriture ou la modification sur disque</span>
+        <section class="view-panel" id="pane-watcher">
+          <div class="slate-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h2 class="panel-title">Sentinelle de surveillance continue</h2>
+                <span class="panel-subtitle">Interception automatique des événements de création et modification de fichiers</span>
+              </div>
             </div>
 
-            <div class="card-body">
-              <div class="watcher-control-panel">
-                <div class="watcher-status-card" id="watcher-card-indicator">
-                  <div class="watcher-led" id="watcher-led"></div>
-                  <div class="watcher-info-text">
-                    <h3 id="watcher-title-status">SENTINELLE INACTIVE</h3>
-                    <p id="watcher-desc-status">Aucun répertoire n'est actuellement surveillé en arrière-plan.</p>
+            <div class="panel-body">
+              <div class="sentinel-control-card">
+                <div class="sentinel-meta-block">
+                  <div class="sentinel-indicator-box" id="watcher-card-indicator">
+                    <span class="pulse-ring"></span>
+                    <span class="pulse-center"></span>
                   </div>
-                  <div class="watcher-switch-wrapper">
-                    <label class="switch">
-                      <input type="checkbox" id="watcher-toggle-checkbox">
-                      <span class="slider round"></span>
-                    </label>
+                  <div class="sentinel-text-group">
+                    <h3 class="sentinel-status-heading" id="watcher-title-status">Sentinelle inactive</h3>
+                    <p class="sentinel-status-desc" id="watcher-desc-status">
+                      Aucun dossier n'est actuellement sous écoute active.
+                    </p>
                   </div>
                 </div>
 
-                <div class="watcher-config-box">
-                  <div class="input-row">
-                    <label>Répertoire à surveiller :</label>
-                    <div class="input-wrapper">
-                      <input type="text" id="watcher-path-input" placeholder="Ex: C:\Users\Lucas\Downloads">
-                    </div>
-                    <button class="btn btn-secondary" id="btn-browse-watcher-folder">📁 Choisir Dossier</button>
-                  </div>
-
-                  <label class="cyber-checkbox mt-1">
-                    <input type="checkbox" id="watcher-opt-quarantine" checked>
-                    <span class="checkmark"></span>
-                    <span class="opt-label">Mettre immédiatement en quarantaine toute menace interceptée</span>
+                <div class="sentinel-switch-box">
+                  <label class="modern-toggle">
+                    <input type="checkbox" id="watcher-toggle-checkbox">
+                    <span class="toggle-slider"></span>
                   </label>
                 </div>
               </div>
 
-              <h3 class="section-title mt-2">📡 Flux d'Interception en Direct</h3>
-              <div class="table-responsive">
-                <table class="cyber-table">
+              <div class="sentinel-config-row">
+                <div class="config-field">
+                  <label class="field-label">Dossier à surveiller :</label>
+                  <div class="target-picker-bar inline">
+                    <div class="target-input-shell">
+                      <input type="text" id="watcher-path-input" placeholder="Ex: C:\Users\Lucas\Downloads">
+                    </div>
+                    <button class="btn btn-secondary" id="btn-browse-watcher-folder">
+                      <span>Parcourir</span>
+                    </button>
+                  </div>
+                </div>
+
+                <label class="clean-checkbox mt-config">
+                  <input type="checkbox" id="watcher-opt-quarantine" checked>
+                  <span class="checkbox-box"></span>
+                  <span class="checkbox-text">Mettre immédiatement en quarantaine toute menace interceptée</span>
+                </label>
+              </div>
+
+              <div class="sub-panel-title mt-section">Événements interceptés en direct</div>
+              <div class="table-frame">
+                <table class="enterprise-table">
                   <thead>
                     <tr>
-                      <th>FICHIER DÉTECTÉ</th>
-                      <th>RÉSULTAT</th>
-                      <th>MENACE IDENTIFIÉE</th>
-                      <th>ACTION</th>
+                      <th>FICHIER INTERCEPTÉ</th>
+                      <th style="width: 140px;">RÉSULTAT</th>
+                      <th style="width: 220px;">MENACE DÉTECTÉE</th>
+                      <th style="width: 130px;">ACTION</th>
                     </tr>
                   </thead>
                   <tbody id="watcher-events-tbody">
                     <tr>
-                      <td colspan="4" class="empty-state">En attente d'événements de fichiers...</td>
+                      <td colspan="4" class="empty-state-cell">En attente d'événements de fichiers...</td>
                     </tr>
                   </tbody>
                 </table>
@@ -415,26 +536,31 @@
         </section>
 
         <!-- ================= TAB 6: AUDIT LOGS ================= -->
-        <section class="tab-pane" id="pane-audit">
-          <div class="card">
-            <div class="card-header">
-              <h2>📜 Console Journal d'Audit & Sécurité</h2>
-              <div class="header-actions">
-                <button class="btn btn-outline" id="btn-clear-logs">Effacer Console</button>
-                <button class="btn btn-secondary" id="btn-refresh-logs">Actualiser ⟳</button>
+        <section class="view-panel" id="pane-audit">
+          <div class="slate-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h2 class="panel-title">Journal des audits de sécurité</h2>
+                <span class="panel-subtitle">Historique horodaté des actions et détections du moteur</span>
+              </div>
+              <div class="panel-actions">
+                <button class="btn btn-subtle" id="btn-clear-logs">Effacer la vue</button>
+                <button class="btn btn-icon-text" id="btn-refresh-logs">
+                  <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                  </svg>
+                  <span>Actualiser</span>
+                </button>
               </div>
             </div>
 
-            <div class="card-body">
-              <div class="cyber-terminal">
-                <div class="terminal-header">
-                  <span class="term-dot red"></span>
-                  <span class="term-dot yellow"></span>
-                  <span class="term-dot green"></span>
-                  <span class="term-title">pulseguard-audit-feed — 127.0.0.1:48201</span>
+            <div class="panel-body">
+              <div class="enterprise-console">
+                <div class="console-topbar">
+                  <span class="console-title">pulseguard-audit.log · 127.0.0.1:48201</span>
                 </div>
-                <div class="terminal-body" id="audit-log-terminal">
-                  <!-- Logs stream here -->
+                <div class="console-viewport" id="audit-log-terminal">
+                  <!-- Log lines injected here -->
                 </div>
               </div>
             </div>
@@ -444,8 +570,8 @@
       </main>
     </div>
 
-    <!-- Notification Toast Element -->
-    <div class="toast-container" id="toast-container"></div>
+    <!-- Notification Toast System -->
+    <div class="toast-stack" id="toast-container"></div>
   </div>
 
   <script src="app.js"></script>

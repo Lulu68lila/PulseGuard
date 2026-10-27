@@ -86,10 +86,10 @@ for (const id of requiredIds) {
 
 // 5. Validate CSS rules
 const css = fs.readFileSync(path.join(__dirname, 'styles.css'), 'utf-8');
-assert(css.includes('--neon-cyan: #00f0ff;'), 'CSS contains cyberpunk neon variables');
-assert(css.includes('.radar-container'), 'CSS contains radar container style');
-assert(css.includes('.cyber-table'), 'CSS contains cyber table style');
-assert(css.includes('backdrop-filter: blur'), 'CSS contains glassmorphism backdrop-filter');
+assert(css.includes('--bg-canvas: #090d16;'), 'CSS contains enterprise slate palette');
+assert(css.includes('.hero-status-card'), 'CSS contains hero status card style');
+assert(css.includes('.enterprise-table'), 'CSS contains enterprise table style');
+assert(css.includes('.window-titlebar'), 'CSS contains integrated titlebar style');
 
 console.log('------------------------------------');
 if (errors === 0) {

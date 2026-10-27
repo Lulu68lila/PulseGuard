@@ -1,5 +1,5 @@
 /**
- * PulseGuard Cyberpunk Electron Frontend Logic.
+ * PulseGuard Enterprise Security Suite — Client Controller.
  * Communicates with the local Python REST API on http://127.0.0.1:48201.
  */
 
@@ -27,9 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupWatcherControls();
   setupAuditControls();
 
-  appendLog('INITIALISATION', 'Interface PulseGuard chargée. Connexion au pont API...', 'info');
+  appendLog('SYS_INIT', 'PulseGuard Endpoint Shield initialisé. Liaison API active.', 'info');
 
-  // Initial data fetch & recurring polling
+  // Initial telemetry fetch & periodic polling
   fetchStatus();
   fetchQuarantine();
   fetchEvents();
@@ -62,16 +62,16 @@ function setupWindowControls() {
 
 // --- Tab Navigation ---
 function setupNavigation() {
-  const navItems = document.querySelectorAll('.nav-item');
-  const panes = document.querySelectorAll('.tab-pane');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const panes = document.querySelectorAll('.view-panel');
 
-  navItems.forEach((item) => {
-    item.addEventListener('click', () => {
-      const targetTab = item.getAttribute('data-tab');
-      navItems.forEach((n) => n.classList.remove('active'));
+  navLinks.forEach((link) => {
+    link.addEventListener('click', () => {
+      const targetTab = link.getAttribute('data-tab');
+      navLinks.forEach((n) => n.classList.remove('active'));
       panes.forEach((p) => p.classList.remove('active'));
 
-      item.classList.add('active');
+      link.classList.add('active');
       const targetPane = document.getElementById(`pane-${targetTab}`);
       if (targetPane) targetPane.classList.add('active');
 
@@ -84,13 +84,13 @@ function setupNavigation() {
 
   // Dashboard shortcut buttons
   document.getElementById('btn-goto-scanner')?.addEventListener('click', () => {
-    document.querySelector('.nav-item[data-tab="scanner"]')?.click();
+    document.querySelector('.nav-link[data-tab="scanner"]')?.click();
   });
   document.getElementById('btn-goto-processes')?.addEventListener('click', () => {
-    document.querySelector('.nav-item[data-tab="processes"]')?.click();
+    document.querySelector('.nav-link[data-tab="processes"]')?.click();
   });
   document.getElementById('btn-quick-scan-downloads')?.addEventListener('click', () => {
-    document.querySelector('.nav-item[data-tab="scanner"]')?.click();
+    document.querySelector('.nav-link[data-tab="scanner"]')?.click();
     const downloadsPath = window.pulseguard?.platform === 'win32' ? 'C:\\Users\\lulu6\\Downloads' : '~/Downloads';
     document.getElementById('scan-target-path').value = downloadsPath;
     startScan();
@@ -123,31 +123,52 @@ async function fetchStatus() {
 }
 
 function updateStatusUI(data) {
-  // Topbar
+  // Titlebar Engine Indicator
   const enginePill = document.getElementById('pill-engine-status');
   const engineText = document.getElementById('engine-status-text');
-  const dot = enginePill.querySelector('.dot');
-  dot.className = 'dot pulse-green';
-  engineText.textContent = 'ONLINE';
+  const dot = enginePill.querySelector('.status-indicator-dot');
+  if (dot) dot.className = 'status-indicator-dot online';
+  if (engineText) engineText.textContent = 'ONLINE';
 
-  document.getElementById('top-vault-count').textContent = `${data.quarantine_count} ISOLÉS`;
-  document.getElementById('nav-quarantine-badge').textContent = data.quarantine_count;
+  // Titlebar Quarantine Count
+  const topVault = document.getElementById('top-vault-count');
+  if (topVault) topVault.textContent = String(data.quarantine_count || 0);
 
-  const watcherPill = document.getElementById('pill-watcher-status');
+  // Navigation badge
+  const navBadge = document.getElementById('nav-quarantine-badge');
+  if (navBadge) navBadge.textContent = String(data.quarantine_count || 0);
+
+  // Titlebar Watcher Indicator
   const watcherText = document.getElementById('top-watcher-text');
-  const watcherDot = watcherPill.querySelector('.dot');
-  if (data.watcher_active) {
-    watcherDot.className = 'dot pulse-green';
-    watcherText.textContent = 'ACTIF';
-  } else {
-    watcherDot.className = 'dot';
-    watcherText.textContent = 'INACTIF';
+  const watcherDot = document.getElementById('watcher-indicator-dot');
+  if (watcherDot && watcherText) {
+    if (data.watcher_active) {
+      watcherDot.className = 'status-indicator-dot online';
+      watcherText.textContent = 'ACTIF';
+    } else {
+      watcherDot.className = 'status-indicator-dot';
+      watcherText.textContent = 'INACTIF';
+    }
   }
 
   // Dashboard Stats
-  document.getElementById('stat-signatures').textContent = data.signatures || 4;
-  document.getElementById('stat-quarantine-count').textContent = data.quarantine_count || 0;
-  document.getElementById('stat-watcher-status').textContent = data.watcher_active ? 'ACTIF' : 'INACTIF';
+  const statSig = document.getElementById('stat-signatures');
+  if (statSig) statSig.textContent = data.signatures || 4;
+
+  const statQ = document.getElementById('stat-quarantine-count');
+  if (statQ) statQ.textContent = data.quarantine_count || 0;
+
+  const statWatcher = document.getElementById('stat-watcher-status');
+  const statWatcherFoot = document.getElementById('stat-watcher-footer');
+  if (statWatcher) {
+    statWatcher.textContent = data.watcher_active ? 'Actif' : 'Inactif';
+    statWatcher.style.color = data.watcher_active ? 'var(--accent-emerald)' : 'var(--text-muted)';
+  }
+  if (statWatcherFoot) {
+    statWatcherFoot.textContent = data.watcher_active
+      ? (data.watched_path ? `Sur : ${getFileName(data.watched_path)}` : 'En surveillance')
+      : 'Surveillance de répertoire';
+  }
 
   // Vault dir label in quarantine tab
   const vaultLabel = document.getElementById('vault-dir-label');
@@ -157,19 +178,19 @@ function updateStatusUI(data) {
 
   // Watcher controls in Watcher tab
   const watcherCheckbox = document.getElementById('watcher-toggle-checkbox');
-  const watcherLed = document.getElementById('watcher-led');
+  const watcherIndicator = document.getElementById('watcher-card-indicator');
   const watcherTitle = document.getElementById('watcher-title-status');
   const watcherDesc = document.getElementById('watcher-desc-status');
-  if (watcherCheckbox && watcherLed) {
-    watcherCheckbox.checked = data.watcher_active;
+  if (watcherCheckbox && watcherIndicator) {
+    watcherCheckbox.checked = !!data.watcher_active;
     if (data.watcher_active) {
-      watcherLed.className = 'watcher-led active';
-      watcherTitle.textContent = 'SENTINELLE ACTIVE';
-      watcherDesc.textContent = `Surveillance temps réel sur : ${data.watched_path || 'Répertoire configuré'}`;
+      watcherIndicator.className = 'sentinel-indicator-box active';
+      if (watcherTitle) watcherTitle.textContent = 'Sentinelle active';
+      if (watcherDesc) watcherDesc.textContent = `Surveillance continue sur : ${data.watched_path || 'Répertoire configuré'}`;
     } else {
-      watcherLed.className = 'watcher-led';
-      watcherTitle.textContent = 'SENTINELLE INACTIVE';
-      watcherDesc.textContent = 'Aucun répertoire n\'est actuellement surveillé en arrière-plan.';
+      watcherIndicator.className = 'sentinel-indicator-box';
+      if (watcherTitle) watcherTitle.textContent = 'Sentinelle inactive';
+      if (watcherDesc) watcherDesc.textContent = 'Aucun dossier n\'est actuellement sous écoute active.';
     }
   }
 }
@@ -177,9 +198,9 @@ function updateStatusUI(data) {
 function updateOfflineUI() {
   const enginePill = document.getElementById('pill-engine-status');
   const engineText = document.getElementById('engine-status-text');
-  const dot = enginePill.querySelector('.dot');
-  dot.className = 'dot pulse-red';
-  engineText.textContent = 'OFFLINE';
+  const dot = enginePill?.querySelector('.status-indicator-dot');
+  if (dot) dot.className = 'status-indicator-dot offline';
+  if (engineText) engineText.textContent = 'OFFLINE';
 }
 
 // --- File Scanner ---
@@ -225,7 +246,6 @@ async function startScan() {
   const progressStatus = document.getElementById('scan-progress-status');
   const progressPercent = document.getElementById('scan-progress-percent');
   const resultsBox = document.getElementById('scan-results-box');
-  const tbody = document.getElementById('scan-results-tbody');
   const btnStart = document.getElementById('btn-start-scan');
 
   progressBox.style.display = 'block';
@@ -235,7 +255,7 @@ async function startScan() {
   progressStatus.textContent = 'Initialisation du moteur d\'analyse...';
   btnStart.disabled = true;
 
-  appendLog('SCAN_START', `Lancement de l'analyse : ${targetPath} (récursif=${recursive}, quarantaine=${quarantine})`, 'info');
+  appendLog('SCAN_EXEC', `Analyse démarrée : ${targetPath} (récursif=${recursive}, quarantaine=${quarantine})`, 'info');
 
   let simProgress = 15;
   const timer = setInterval(() => {
@@ -244,7 +264,7 @@ async function startScan() {
       if (simProgress > 85) simProgress = 85;
       progressBar.style.width = `${simProgress}%`;
       progressPercent.textContent = `${simProgress}%`;
-      progressStatus.textContent = `Calcul des empreintes SHA-256 et heuristique (${simProgress}%)...`;
+      progressStatus.textContent = `Empreintes SHA-256 et heuristique (${simProgress}%)...`;
     }
   }, 120);
 
@@ -272,7 +292,7 @@ async function startScan() {
       progressBox.style.display = 'none';
       renderScanResults(data);
       btnStart.disabled = false;
-    }, 400);
+    }, 350);
 
     fetchStatus();
     fetchQuarantine();
@@ -281,7 +301,7 @@ async function startScan() {
     progressBox.style.display = 'none';
     btnStart.disabled = false;
     showToast(`Erreur d'analyse : ${err.message}`, 'danger');
-    appendLog('SCAN_ERROR', `Échec de l'analyse : ${err.message}`, 'error');
+    appendLog('SCAN_ERR', `Échec d'analyse : ${err.message}`, 'error');
   }
 }
 
@@ -295,11 +315,11 @@ function renderScanResults(data) {
   const infectedCount = data.infected_count || 0;
   let quarantinedCount = 0;
 
-  document.getElementById('res-total-scanned').textContent = scannedCount;
-  document.getElementById('res-total-infected').textContent = infectedCount;
+  document.getElementById('res-total-scanned').textContent = String(scannedCount);
+  document.getElementById('res-total-infected').textContent = String(infectedCount);
 
   if (!data.results || data.results.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun fichier trouvé dans la cible spécifiée.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state-cell">Aucun fichier trouvé dans la cible spécifiée.</td></tr>';
     return;
   }
 
@@ -307,19 +327,26 @@ function renderScanResults(data) {
     if (item.quarantine_id) quarantinedCount++;
     const tr = document.createElement('tr');
 
-    const badgeClass = item.is_infected ? 'badge-status badge-infected' : 'badge-status badge-clean';
+    const badgeClass = item.is_infected ? 'badge-tag badge-infected' : 'badge-tag badge-clean';
     const statusText = item.is_infected ? 'INFECTÉ' : 'SAIN';
-    const threatDisplay = item.threat_name ? `<span style="color:var(--neon-crimson);font-weight:700;">${escapeHtml(item.threat_name)}</span>` : '<span style="color:var(--text-dim);">-</span>';
-    const hashDisplay = item.file_hash ? `<span class="hash-code">${item.file_hash.substring(0, 16)}...</span>` : '-';
+    const threatDisplay = item.threat_name
+      ? `<strong style="color:var(--accent-crimson);">${escapeHtml(item.threat_name)}</strong>`
+      : '<span style="color:var(--text-dim);">-</span>';
+    const hashDisplay = item.file_hash
+      ? `<span class="code-font" style="font-size:0.75rem;color:var(--text-muted);">${item.file_hash.substring(0, 16)}...</span>`
+      : '-';
     const qDisplay = item.quarantine_id
-      ? `<span class="badge-status badge-clean">ISOLÉ (${item.quarantine_id.substring(0, 8)})</span>`
+      ? `<span class="badge-tag badge-clean">ISOLÉ</span>`
       : item.is_infected
-      ? `<span class="badge-status badge-warning">NON ISOLÉ</span>`
+      ? `<span class="badge-tag badge-infected">NON ISOLÉ</span>`
       : '<span style="color:var(--text-dim);">-</span>';
 
     tr.innerHTML = `
       <td><span class="${badgeClass}">${statusText}</span></td>
-      <td title="${escapeHtml(item.file_path)}"><strong>${escapeHtml(getFileName(item.file_path))}</strong><br><small style="color:var(--text-dim);">${escapeHtml(item.file_path)}</small></td>
+      <td title="${escapeHtml(item.file_path)}">
+        <strong>${escapeHtml(getFileName(item.file_path))}</strong>
+        <div style="font-size:0.72rem;color:var(--text-muted);">${escapeHtml(item.file_path)}</div>
+      </td>
       <td>${threatDisplay}</td>
       <td>${hashDisplay}</td>
       <td>${qDisplay}</td>
@@ -327,15 +354,15 @@ function renderScanResults(data) {
     tbody.appendChild(tr);
   });
 
-  document.getElementById('res-total-quarantined').textContent = quarantinedCount;
+  document.getElementById('res-total-quarantined').textContent = String(quarantinedCount);
 
   if (infectedCount > 0) {
-    showToast(`⚠️ Alerte : ${infectedCount} menace(s) détectée(s) !`, 'danger');
-    appendLog('THREAT_DETECTED', `${infectedCount} menace(s) identifiée(s) lors du scan de ${scannedCount} fichiers.`, 'error');
+    showToast(`${infectedCount} menace(s) détectée(s) lors du scan`, 'danger');
+    appendLog('ALERT', `${infectedCount} menace(s) identifiée(s) parmi ${scannedCount} fichiers analysés.`, 'error');
     setShieldThreatState(true);
   } else {
-    showToast(`Scan terminé : ${scannedCount} fichiers analysés, aucun danger.`, 'success');
-    appendLog('SCAN_CLEAN', `Analyse terminée avec succès. Aucun danger sur ${scannedCount} fichiers.`, 'info');
+    showToast(`Scan terminé : ${scannedCount} fichiers vérifiés, intégrité confirmée`, 'success');
+    appendLog('SCAN_OK', `Scan complété avec succès. 0 menace sur ${scannedCount} fichiers.`, 'info');
     setShieldThreatState(false);
   }
 }
@@ -355,7 +382,7 @@ function setupProcessControls() {
 
 async function fetchProcesses() {
   const tbody = document.getElementById('processes-tbody');
-  tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Inspection de la table des processus en cours...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" class="empty-state-cell">Inspection des processus actifs en cours...</td></tr>';
 
   try {
     const res = await fetch(`${API_BASE}/api/processes?limit=60`);
@@ -363,10 +390,10 @@ async function fetchProcesses() {
     const data = await res.json();
     appState.processes = data.processes || [];
     renderProcesses(appState.processes);
-    appendLog('RAM_SCAN', `Inspection mémoire terminée. ${appState.processes.length} processus analysés.`, 'info');
+    appendLog('RAM_AUDIT', `Inspection mémoire terminée (${appState.processes.length} processus analysés).`, 'info');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color:var(--neon-crimson);">Échec du scan mémoire : ${err.message}</td></tr>`;
-    showToast('Impossible de récupérer la liste des processus', 'danger');
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state-cell" style="color:var(--accent-crimson);">Échec du scan mémoire : ${err.message}</td></tr>`;
+    showToast('Impossible de contacter le sous-système processus', 'danger');
   }
 }
 
@@ -375,21 +402,23 @@ function renderProcesses(procList) {
   tbody.innerHTML = '';
 
   if (procList.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun processus correspondant.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state-cell">Aucun processus correspondant.</td></tr>';
     return;
   }
 
   procList.forEach((p) => {
     const tr = document.createElement('tr');
     const badge = p.is_infected
-      ? '<span class="badge-status badge-infected">SUSPECT</span>'
-      : '<span class="badge-status badge-clean">PROTÉGÉ</span>';
-    const threat = p.threat_name ? `<span style="color:var(--neon-crimson);">${escapeHtml(p.threat_name)}</span>` : '<span style="color:var(--text-dim);">-</span>';
+      ? '<span class="badge-tag badge-infected">SUSPECT</span>'
+      : '<span class="badge-tag badge-clean">PROTÉGÉ</span>';
+    const threat = p.threat_name
+      ? `<strong style="color:var(--accent-crimson);">${escapeHtml(p.threat_name)}</strong>`
+      : '<span style="color:var(--text-dim);">-</span>';
 
     tr.innerHTML = `
-      <td><code>${p.pid}</code></td>
+      <td class="code-font" style="font-weight:600;">${p.pid}</td>
       <td><strong>${escapeHtml(p.name || 'Inconnu')}</strong></td>
-      <td title="${escapeHtml(p.exe_path || '')}"><small style="color:var(--text-dim);">${escapeHtml(p.exe_path || 'N/A')}</small></td>
+      <td title="${escapeHtml(p.exe_path || '')}"><span style="color:var(--text-muted);font-size:0.75rem;">${escapeHtml(p.exe_path || 'N/A')}</span></td>
       <td>${badge}</td>
       <td>${threat}</td>
     `;
@@ -412,7 +441,7 @@ function filterProcesses(query) {
 function setupQuarantineControls() {
   document.getElementById('btn-refresh-quarantine')?.addEventListener('click', () => {
     fetchQuarantine();
-    showToast('Coffre-fort actualisé', 'success');
+    showToast('Coffre de quarantaine actualisé', 'success');
   });
 }
 
@@ -424,7 +453,7 @@ async function fetchQuarantine() {
     const data = await res.json();
     renderQuarantine(data.records || []);
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Erreur de chargement du coffre : ${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state-cell">Erreur lors de la lecture du coffre : ${err.message}</td></tr>`;
   }
 }
 
@@ -432,28 +461,32 @@ function renderQuarantine(records) {
   const tbody = document.getElementById('quarantine-tbody');
   tbody.innerHTML = '';
 
-  document.getElementById('nav-quarantine-badge').textContent = records.length;
-  document.getElementById('stat-quarantine-count').textContent = records.length;
-  document.getElementById('top-vault-count').textContent = `${records.length} ISOLÉS`;
+  const countStr = String(records.length);
+  document.getElementById('nav-quarantine-badge').textContent = countStr;
+  document.getElementById('stat-quarantine-count').textContent = countStr;
+  document.getElementById('top-vault-count').textContent = countStr;
 
   if (records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Le coffre-fort est vide. Aucune menace isolée.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state-cell">Le coffre-fort est vide. Aucune menace isolée.</td></tr>';
     return;
   }
 
   records.forEach((r) => {
     const tr = document.createElement('tr');
     const dateFormatted = new Date(r.quarantined_at).toLocaleString('fr-FR');
-    const sevBadge = `<span class="badge-status badge-infected">${escapeHtml(r.severity || 'HIGH')}</span>`;
+    const sevBadge = `<span class="badge-tag badge-infected">${escapeHtml(r.severity || 'HIGH')}</span>`;
 
     tr.innerHTML = `
-      <td><small style="color:var(--text-dim);">${dateFormatted}</small></td>
-      <td title="${escapeHtml(r.original_path)}"><strong>${escapeHtml(getFileName(r.original_path))}</strong><br><small style="color:var(--text-dim);">${escapeHtml(r.original_path)}</small></td>
-      <td><strong style="color:var(--neon-crimson);">${escapeHtml(r.threat_name)}</strong></td>
+      <td><span style="color:var(--text-muted);font-size:0.78rem;">${dateFormatted}</span></td>
+      <td title="${escapeHtml(r.original_path)}">
+        <strong>${escapeHtml(getFileName(r.original_path))}</strong>
+        <div style="font-size:0.72rem;color:var(--text-muted);">${escapeHtml(r.original_path)}</div>
+      </td>
+      <td><strong style="color:var(--accent-crimson);">${escapeHtml(r.threat_name)}</strong></td>
       <td>${sevBadge}</td>
       <td>
-        <button class="btn-success-sm" data-action="restore" data-id="${r.record_id}">Restaurer</button>
-        <button class="btn-danger-sm" data-action="delete" data-id="${r.record_id}" style="margin-left:6px;">Broyer</button>
+        <button class="btn-table-action restore" data-action="restore" data-id="${r.record_id}">Restaurer</button>
+        <button class="btn-table-action shred" data-action="delete" data-id="${r.record_id}">Broyer</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -477,12 +510,12 @@ async function restoreQuarantineFile(recordId) {
     });
     const data = await res.json();
     if (data.success) {
-      showToast(`Fichier restauré avec succès : ${data.restored_path}`, 'success');
-      appendLog('VAULT_RESTORE', `Restauration intègre du fichier : ${data.restored_path}`, 'info');
+      showToast(`Fichier restauré avec intégrité : ${data.restored_path}`, 'success');
+      appendLog('VAULT_REST', `Restauration réussie du fichier : ${data.restored_path}`, 'info');
       fetchQuarantine();
       fetchStatus();
     } else {
-      showToast(`Échec de la restauration : ${data.error}`, 'danger');
+      showToast(`Échec de restauration : ${data.error}`, 'danger');
     }
   } catch (err) {
     showToast(`Erreur : ${err.message}`, 'danger');
@@ -490,7 +523,7 @@ async function restoreQuarantineFile(recordId) {
 }
 
 async function deleteQuarantineFile(recordId) {
-  if (!confirm('Êtes-vous sûr de vouloir broyer et supprimer définitivement ce fichier du coffre ?')) {
+  if (!confirm('Voulez-vous détruire définitivement ce fichier et écraser ses données sur le disque ?')) {
     return;
   }
   try {
@@ -502,7 +535,7 @@ async function deleteQuarantineFile(recordId) {
     const data = await res.json();
     if (data.success) {
       showToast('Fichier broyé et effacé du coffre.', 'success');
-      appendLog('VAULT_SHRED', `Suppression sécurisée du fichier chiffré ${recordId}`, 'warn');
+      appendLog('VAULT_SHRED', `Suppression définitive et shred du payload ${recordId}`, 'warn');
       fetchQuarantine();
       fetchStatus();
     } else {
@@ -532,7 +565,7 @@ function setupWatcherControls() {
     const quarantine = document.getElementById('watcher-opt-quarantine')?.checked ?? true;
 
     if (activate && !path) {
-      showToast('Veuillez spécifier un répertoire à surveiller.', 'danger');
+      showToast('Spécifiez un dossier valide pour enclencher la veille.', 'danger');
       toggle.checked = false;
       return;
     }
@@ -546,16 +579,16 @@ function setupWatcherControls() {
       const data = await res.json();
 
       if (data.watcher_active) {
-        showToast(`Sentinelle activée sur : ${data.watched_path}`, 'success');
-        appendLog('WATCHER_ACTIVE', `Surveillance en temps réel engagée sur ${data.watched_path}`, 'info');
+        showToast(`Sentinelle engagée sur : ${data.watched_path}`, 'success');
+        appendLog('WATCH_ON', `Surveillance continue active sur ${data.watched_path}`, 'info');
       } else {
-        showToast('Sentinelle désactivée.', 'info');
-        appendLog('WATCHER_STOPPED', 'Surveillance en arrière-plan arrêtée.', 'warn');
+        showToast('Sentinelle désactivée', 'info');
+        appendLog('WATCH_OFF', 'Surveillance continue suspendue.', 'warn');
       }
       fetchStatus();
     } catch (err) {
       toggle.checked = !activate;
-      showToast(`Erreur Sentinelle : ${err.message}`, 'danger');
+      showToast(`Erreur sentinelle : ${err.message}`, 'danger');
     }
   });
 }
@@ -576,8 +609,15 @@ function renderWatcherEvents(events) {
   const dashboardEvents = document.getElementById('dashboard-recent-events');
 
   if (events.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">En attente d\'événements de fichiers...</td></tr>';
-    dashboardEvents.innerHTML = '<div class="empty-state">Aucun événement suspect récent détecté. Tout est calme.</div>';
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state-cell">En attente d\'événements de fichiers...</td></tr>';
+    dashboardEvents.innerHTML = `
+      <div class="empty-state-notice">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+        <span>Aucune menace récente détectée sur le système. Les défenses sont au vert.</span>
+      </div>`;
     return;
   }
 
@@ -589,11 +629,13 @@ function renderWatcherEvents(events) {
   recentReversed.slice(0, 15).forEach((ev) => {
     const tr = document.createElement('tr');
     const badge = ev.is_infected
-      ? '<span class="badge-status badge-infected">INFECTÉ</span>'
-      : '<span class="badge-status badge-clean">SAIN</span>';
-    const threat = ev.threat_name ? `<strong style="color:var(--neon-crimson);">${escapeHtml(ev.threat_name)}</strong>` : '-';
+      ? '<span class="badge-tag badge-infected">INFECTÉ</span>'
+      : '<span class="badge-tag badge-clean">SAIN</span>';
+    const threat = ev.threat_name
+      ? `<strong style="color:var(--accent-crimson);">${escapeHtml(ev.threat_name)}</strong>`
+      : '<span style="color:var(--text-dim);">-</span>';
     const action = ev.quarantine_id
-      ? `<span class="badge-status badge-clean">ISOLÉ</span>`
+      ? `<span class="badge-tag badge-clean">ISOLÉ</span>`
       : '<span style="color:var(--text-dim);">-</span>';
 
     tr.innerHTML = `
@@ -606,29 +648,30 @@ function renderWatcherEvents(events) {
   });
 
   // Also update dashboard preview
-  recentReversed.slice(0, 5).forEach((ev) => {
+  recentReversed.slice(0, 4).forEach((ev) => {
     const div = document.createElement('div');
-    div.className = 'vault-meta-item';
-    div.style.padding = '8px 0';
+    div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-hairline);';
     div.innerHTML = `
-      <span class="meta-label">[${ev.status}]</span>
-      <strong style="color:${ev.is_infected ? 'var(--neon-crimson)' : 'var(--neon-emerald)'}">${escapeHtml(getFileName(ev.file_path))}</strong>
-      ${ev.threat_name ? `— <em>${escapeHtml(ev.threat_name)}</em>` : ''}
+      <div>
+        <strong style="color:${ev.is_infected ? 'var(--accent-crimson)' : 'var(--text-primary)'};">${escapeHtml(getFileName(ev.file_path))}</strong>
+        <span style="color:var(--text-muted);font-size:0.75rem;margin-left:8px;">${ev.threat_name ? escapeHtml(ev.threat_name) : 'Intégrité vérifiée'}</span>
+      </div>
+      <span class="badge-tag ${ev.is_infected ? 'badge-infected' : 'badge-clean'}">${ev.status}</span>
     `;
     dashboardEvents.appendChild(div);
   });
 }
 
-// --- Audit Terminal Logs ---
+// --- Audit Console Logs ---
 function setupAuditControls() {
   document.getElementById('btn-clear-logs')?.addEventListener('click', () => {
     document.getElementById('audit-log-terminal').innerHTML = '';
-    showToast('Console d\'audit effacée', 'info');
+    showToast('Vue du journal effacée', 'info');
   });
 
   document.getElementById('btn-refresh-logs')?.addEventListener('click', () => {
     fetchStatus();
-    appendLog('AUDIT_SYNC', 'Synchronisation de l\'état de sécurité demandée.', 'info');
+    appendLog('SYNC', 'Synchronisation manuelle de l\'état de sécurité.', 'info');
   });
 }
 
@@ -641,7 +684,7 @@ function appendLog(category, message, level = 'info') {
 
   const div = document.createElement('div');
   div.className = `log-entry ${level}`;
-  div.innerHTML = `[${timeStr}] <strong style="color:var(--neon-cyan)">[${escapeHtml(category)}]</strong> ${escapeHtml(message)}`;
+  div.innerHTML = `<span style="color:var(--text-dim)">[${timeStr}]</span> <strong style="color:var(--accent-blue)">[${escapeHtml(category)}]</strong> ${escapeHtml(message)}`;
 
   terminal.appendChild(div);
   terminal.scrollTop = terminal.scrollHeight;
@@ -659,30 +702,43 @@ function showToast(message, type = 'info') {
   container.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
-    toast.style.transform = 'translateX(100%)';
-    toast.style.transition = 'all 0.3s ease';
-    setTimeout(() => toast.remove(), 300);
-  }, 4000);
+    toast.style.transform = 'translateX(20px)';
+    toast.style.transition = 'all 0.2s ease';
+    setTimeout(() => toast.remove(), 250);
+  }, 3500);
 }
 
 function setShieldThreatState(isThreat) {
   const badge = document.getElementById('dashboard-shield-badge');
-  const shieldIcon = document.getElementById('shield-core-icon');
+  const heroCard = document.getElementById('dashboard-hero-card');
+  const shieldEmblem = document.getElementById('hero-shield-emblem');
+  const sideState = document.getElementById('sidebar-protection-state');
+
   if (!badge) return;
 
   if (isThreat) {
-    badge.className = 'shield-status-badge status-threat';
-    badge.textContent = 'MENACE ACTIVE DÉTECTÉE !';
-    if (shieldIcon) {
-      shieldIcon.querySelector('svg').style.color = 'var(--neon-crimson)';
-      shieldIcon.querySelector('svg').style.filter = 'drop-shadow(0 0 15px var(--neon-crimson))';
+    badge.className = 'protection-chip threat';
+    badge.innerHTML = '<span class="chip-dot"></span><span>MENACE ACTIVE DÉTECTÉE</span>';
+    if (heroCard) heroCard.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+    if (shieldEmblem) {
+      shieldEmblem.style.color = 'var(--accent-crimson)';
+      shieldEmblem.style.background = 'rgba(239, 68, 68, 0.15)';
+    }
+    if (sideState) {
+      sideState.textContent = 'Menace Active';
+      sideState.style.color = 'var(--accent-crimson)';
     }
   } else {
-    badge.className = 'shield-status-badge status-protected';
-    badge.textContent = 'SYSTÈME SÉCURISÉ & PROTÉGÉ';
-    if (shieldIcon) {
-      shieldIcon.querySelector('svg').style.color = 'var(--neon-emerald)';
-      shieldIcon.querySelector('svg').style.filter = 'drop-shadow(0 0 12px var(--neon-emerald))';
+    badge.className = 'protection-chip protected';
+    badge.innerHTML = '<span class="chip-dot"></span><span>PROTECTION COMPLÈTE ACTIVE</span>';
+    if (heroCard) heroCard.style.borderColor = 'var(--border-hairline)';
+    if (shieldEmblem) {
+      shieldEmblem.style.color = 'var(--accent-emerald)';
+      shieldEmblem.style.background = 'rgba(16, 185, 129, 0.15)';
+    }
+    if (sideState) {
+      sideState.textContent = 'Bouclier Actif';
+      sideState.style.color = 'var(--text-primary)';
     }
   }
 }
