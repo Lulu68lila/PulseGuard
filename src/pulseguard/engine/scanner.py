@@ -1,9 +1,10 @@
 """PulseGuard Core Scanning Engine."""
 
+import concurrent.futures
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional
 
 from pulseguard.core.models import ScanResult, ScanStatus, ThreatInfo
 from pulseguard.engine.heuristics import HeuristicAnalyzer
@@ -120,7 +121,6 @@ class ScannerEngine:
         matched_threat = self.signature_db.match_bytes(file_bytes)
         if matched_threat:
             duration_ms = (time.perf_counter() - start_time) * 1000.0
-            # Ensure the detected threat carries the actual scanned file hash
             enriched_threat = ThreatInfo(
                 threat_name=matched_threat.threat_name,
                 threat_type=matched_threat.threat_type,
@@ -165,16 +165,28 @@ class ScannerEngine:
             scan_duration_ms=duration_ms,
         )
 
-    def scan_directory(self, dir_path: Path, recursive: bool = True) -> Iterable[ScanResult]:
-        """Scan all files in a directory sequentially or recursively."""
+    def scan_directory(
+        self,
+        dir_path: Path,
+        recursive: bool = True,
+        max_workers: int = 1,
+    ) -> Iterable[ScanResult]:
+        """Scan all files in a directory sequentially or in parallel using a thread pool."""
         target_dir = Path(dir_path)
         if not target_dir.exists() or not target_dir.is_dir():
             return
 
         pattern = "**/*" if recursive else "*"
-        for item in target_dir.glob(pattern):
-            if item.is_file():
-                yield self.scan_file(item)
+        file_paths: List[Path] = [p for p in target_dir.glob(pattern) if p.is_file()]
+
+        if max_workers <= 1 or len(file_paths) <= 1:
+            for file_path in file_paths:
+                yield self.scan_file(file_path)
+        else:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(self.scan_file, path): path for path in file_paths}
+                for future in concurrent.futures.as_completed(futures):
+                    yield future.result()
 
 
 # Global default engine instance for module-level convenience
@@ -186,9 +198,9 @@ def scan_file(file_path: Path) -> ScanResult:
     return _default_engine.scan_file(file_path)
 
 
-def scan_directory(dir_path: Path, recursive: bool = True) -> Iterable[ScanResult]:
+def scan_directory(dir_path: Path, recursive: bool = True, max_workers: int = 1) -> Iterable[ScanResult]:
     """Convenience function: scan a directory using default engine."""
-    return _default_engine.scan_directory(dir_path, recursive=recursive)
+    return _default_engine.scan_directory(dir_path, recursive=recursive, max_workers=max_workers)
 
 
 def load_signatures(signature_file: Path) -> int:

@@ -49,3 +49,22 @@ def test_heuristic_high_entropy_binary():
     threat = analyzer.analyze_file(Path("packed.exe"), high_entropy_bytes, "entropy_hash_1")
     assert threat is not None
     assert threat.threat_type == "packed_pe"
+
+
+def test_parallel_directory_scanning(tmp_path: Path):
+    engine = ScannerEngine()
+    # Create multiple files
+    for i in range(10):
+        f = tmp_path / f"file_{i}.txt"
+        f.write_text(f"File content number {i}\n", encoding="utf-8")
+
+    # Add 1 infected file
+    bad = tmp_path / "threat.bin"
+    bad.write_bytes(b"PREFIX::PULSEGUARD_TEST_RANSOM_MARKER::SUFFIX")
+
+    results = list(engine.scan_directory(tmp_path, recursive=False, max_workers=4))
+    assert len(results) == 11
+
+    infected = [r for r in results if r.is_infected]
+    assert len(infected) == 1
+    assert infected[0].threat.threat_name == "Ransom.PulseGuard.TestPayload"
