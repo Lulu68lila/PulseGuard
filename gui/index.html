@@ -9,20 +9,25 @@
 </head>
 <body>
   <div class="app-window">
-    <!-- Bitdefender Style Frameless Integrated Header Bar -->
+    <!-- PulseGuard Modern Integrated Header Bar -->
     <header class="window-titlebar">
       <div class="titlebar-drag">
         <div class="titlebar-brand">
-          <div class="brand-red-badge">B</div>
-          <span class="brand-name">Bitdefender<span class="brand-dot">.</span> <span class="brand-sub">Total Security</span></span>
-          <button class="brand-promo-pill" id="btn-promo-pill">Offre disponible <span class="pill-link">En savoir plus &rsaquo;</span></button>
+          <div class="brand-shield-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M8.5 12h2l1-2.5 1.8 5 1.2-2.5h2"/>
+            </svg>
+          </div>
+          <span class="brand-name">PulseGuard<span class="brand-dot">.</span> <span class="brand-sub">Total Security</span></span>
+          <button class="brand-promo-pill" id="btn-promo-pill">PROTECTION ACTIVE <span class="pill-link">&bull; Sentinelle Pro &rsaquo;</span></button>
         </div>
       </div>
 
       <div class="titlebar-right">
         <div class="user-account-badge">
-          <span class="user-label">Mon compte</span>
-          <div class="user-avatar-circle" title="Compte Utilisateur">RP</div>
+          <span class="user-label">Compte Sécurisé</span>
+          <div class="user-avatar-circle" title="Compte PulseGuard">PG</div>
         </div>
         <button class="titlebar-icon-btn" id="btn-top-settings" title="Paramètres">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -203,7 +208,18 @@
               <div class="square-label">Analyse IA Nemotron</div>
             </div>
 
-            <!-- 4. VPN -->
+            <!-- 4. Analyse des Vulnérabilités -->
+            <div class="square-card" id="card-vuln-scan">
+              <div class="square-icon amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
+              <div class="square-label">Analyse vulnérabilités</div>
+            </div>
+
+            <!-- 5. VPN -->
             <div class="square-card" id="card-vpn">
               <div class="square-icon blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -211,10 +227,10 @@
                   <path d="M10 12h4M12 10v4"/>
                 </svg>
               </div>
-              <div class="square-label">VPN</div>
+              <div class="square-label">VPN Sécurisé</div>
             </div>
 
-            <!-- 5. Safepay -->
+            <!-- 6. Safepay -->
             <div class="square-card" id="card-safepay">
               <div class="square-icon purple">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -223,29 +239,18 @@
                   <path d="M2 12h20"/>
                 </svg>
               </div>
-              <div class="square-label">Safepay</div>
-            </div>
-
-            <!-- 6. Ajouter une action -->
-            <div class="square-card dashed" id="card-add-action">
-              <div class="square-icon-diamond">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2l10 10-10 10L2 12 12 2z"/>
-                  <path d="M12 8v8M8 12h8"/>
-                </svg>
-              </div>
-              <div class="square-label">Ajouter une action</div>
+              <div class="square-label">Safepay Vault</div>
             </div>
           </div>
 
-          <!-- Bottom Footer Upsell (Screenshot 3) -->
+          <!-- Bottom Footer Banner -->
           <div class="dashboard-footer-banner">
             <svg class="footer-pc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
               <line x1="8" y1="21" x2="16" y2="21"/>
               <line x1="12" y1="17" x2="12" y2="21"/>
             </svg>
-            <span>Vous voulez protéger plus d'appareils ? Choisissez un <a href="#" class="footer-link">abonnement Bitdefender Family Pack</a>.</span>
+            <span>Moteur PulseGuard Sentinel & IA Nemotron actifs. <a href="#" class="footer-link" id="footer-run-quick">Lancer une analyse rapide du système</a>.</span>
           </div>
         </section>
 
@@ -347,7 +352,7 @@
                   </label>
                 </div>
                 <p class="f-desc">Analyse votre système, vos applications et le réseau pour détecter les vulnérabilités qui pourraient compromettre la sécurité.</p>
-                <a href="#" class="f-link">Ouvrir</a>
+                <a href="#" class="f-link" id="link-open-vuln">Ouvrir l'Analyseur de Failles</a>
               </div>
             </div>
 
@@ -460,6 +465,65 @@
                   </thead>
                   <tbody id="scan-results-tbody">
                     <!-- Populated via JavaScript -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- ================= REAL-TIME SYSTEM VULNERABILITY SCANNER PANEL ================= -->
+            <div class="vuln-panel-card" id="pane-vuln-inspection" style="margin-top: 24px;">
+              <div class="card-header-row">
+                <div class="card-header-left">
+                  <div class="card-header-icon amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="card-section-title">Analyseur de Failles & Vulnérabilités Système</h3>
+                    <p class="card-section-desc">Audit en temps réel des failles Windows, UAC, chemins de services non cités (CWE-428), pare-feu, et ports exposés.</p>
+                  </div>
+                </div>
+                <div class="vuln-score-pill" id="vuln-score-badge">Score Sécurité : --/100</div>
+              </div>
+
+              <div class="vuln-stats-row">
+                <div class="vuln-stat-box crit">
+                  <span class="v-num" id="vuln-crit-count">0</span>
+                  <span class="v-lbl">Critiques</span>
+                </div>
+                <div class="vuln-stat-box high">
+                  <span class="v-num" id="vuln-high-count">0</span>
+                  <span class="v-lbl">Élevées</span>
+                </div>
+                <div class="vuln-stat-box med">
+                  <span class="v-num" id="vuln-med-count">0</span>
+                  <span class="v-lbl">Moyennes</span>
+                </div>
+                <div class="vuln-stat-box action">
+                  <button class="btn btn-primary" id="btn-run-vuln-scan">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:6px;"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Auditer les failles
+                  </button>
+                </div>
+              </div>
+
+              <div class="table-container" style="margin-top: 16px;">
+                <table class="bd-table" id="vuln-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 100px;">GRAVITÉ</th>
+                      <th style="width: 260px;">FAILLE DÉTECTÉE</th>
+                      <th>ÉLÉMENT AFFECTÉ</th>
+                      <th style="width: 180px;">RÉFÉRENCE</th>
+                      <th style="width: 130px; text-align: right;">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vuln-results-tbody">
+                    <tr>
+                      <td colspan="5" class="empty-state">Cliquez sur « Auditer les failles » pour lancer l'analyse en profondeur des failles système.</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -764,7 +828,7 @@
             <div class="setting-row">
               <div class="setting-text">
                 <div class="setting-title">Protection par mot de passe</div>
-                <div class="setting-desc">Limite l'accès aux paramètres Bitdefender.</div>
+                <div class="setting-desc">Limite l'accès aux paramètres de PulseGuard.</div>
               </div>
               <label class="bd-toggle-switch">
                 <input type="checkbox" id="toggle-pwd-protect">
@@ -775,7 +839,7 @@
             <div class="setting-row">
               <div class="setting-text">
                 <div class="setting-title">Gestion du mot de passe</div>
-                <div class="setting-desc">Change le mot de passe qui limite l'accès aux paramètres Bitdefender.</div>
+                <div class="setting-desc">Change le mot de passe qui limite l'accès aux paramètres de PulseGuard.</div>
               </div>
               <a href="#" class="setting-action-link">Changement de mot de passe</a>
             </div>

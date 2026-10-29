@@ -21,6 +21,15 @@ class ScanStatus(str, Enum):
     SKIPPED = "SKIPPED"
 
 
+class VulnerabilityCategory(str, Enum):
+    SYSTEM_CONFIG = "SYSTEM_CONFIG"
+    PRIVILEGE_ESCALATION = "PRIVILEGE_ESCALATION"
+    NETWORK_EXPOSURE = "NETWORK_EXPOSURE"
+    CREDENTIAL_LEAK = "CREDENTIAL_LEAK"
+    DEFENSE_EVASION = "DEFENSE_EVASION"
+    PERSISTENCE_RISK = "PERSISTENCE_RISK"
+
+
 @dataclass(frozen=True)
 class ThreatInfo:
     threat_name: str
@@ -29,6 +38,20 @@ class ThreatInfo:
     rule_matched: str
     file_hash: str          # SHA-256 string
     details: Optional[str] = None
+
+
+@dataclass
+class VulnerabilityFinding:
+    vuln_id: str
+    category: VulnerabilityCategory
+    severity: ThreatSeverity
+    title: str
+    description: str
+    affected_item: str
+    cve_cwe: str
+    remediation: str
+    can_auto_fix: bool = False
+    is_fixed: bool = False
 
 
 @dataclass(frozen=True)

@@ -1,6 +1,6 @@
 /**
  * PulseGuard GUI Automated Verification & Linting Suite.
- * Validates file structure, syntax parsing, and HTML DOM elements for Bitdefender Edition.
+ * Validates file structure, syntax parsing, and HTML DOM elements for PulseGuard Total Security.
  */
 
 const fs = require('fs');
@@ -79,6 +79,10 @@ const requiredIds = [
   'overlay-progress-percent',
   'overlay-current-file',
   'toast-container',
+  'pane-vuln-inspection',
+  'btn-run-vuln-scan',
+  'vuln-results-tbody',
+  'card-vuln-scan',
 ];
 
 for (const id of requiredIds) {

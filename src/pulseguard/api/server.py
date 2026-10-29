@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import tempfile
 import threading
 import time
@@ -16,6 +17,7 @@ from pulseguard.engine.ai_scanner import NemotronAIScanner
 from pulseguard.engine.process_scanner import scan_running_processes
 from pulseguard.engine.scanner import ScannerEngine, _default_engine
 from pulseguard.engine.signatures import SignatureDatabase
+from pulseguard.engine.vulnerability_scanner import VulnerabilityScanner
 from pulseguard.quarantine.manager import (
     QuarantineError,
     QuarantineManager,
@@ -38,6 +40,7 @@ EXCLUDED_SCAN_PARTS = {
 }
 
 _default_ai_scanner = NemotronAIScanner()
+_default_vuln_scanner = VulnerabilityScanner()
 
 
 class ActiveScanTask:
@@ -290,6 +293,8 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
             self.handle_get_scan_progress()
         elif path == "/api/config":
             self.handle_get_config()
+        elif path == "/api/vulnerabilities/scan":
+            self.handle_get_vulnerabilities_scan()
         else:
             self._send_json_response({"error": f"Endpoint not found: {path}"}, status=HTTPStatus.NOT_FOUND)
 
@@ -324,6 +329,8 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
             self.handle_post_ai_test(body)
         elif path == "/api/config":
             self.handle_post_config(body)
+        elif path == "/api/vulnerabilities/remediate":
+            self.handle_post_vulnerabilities_remediate(body)
         else:
             self._send_json_response({"error": f"Endpoint not found: {path}"}, status=HTTPStatus.NOT_FOUND)
 
@@ -407,7 +414,13 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
         target_paths: List[Path] = []
         if scan_type == "quick":
             user_home = Path.home()
-            for cand in [user_home / "Downloads", user_home / "Desktop"]:
+            quick_cands = [
+                user_home / "Downloads",
+                user_home / "Desktop",
+                Path(os.environ.get("TEMP", str(user_home / "AppData" / "Local" / "Temp"))),
+                user_home / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup",
+            ]
+            for cand in quick_cands:
                 if cand.exists():
                     target_paths.append(cand)
         elif scan_type == "system":
@@ -564,6 +577,41 @@ class PulseGuardRequestHandler(BaseHTTPRequestHandler):
         api_key = body.get("api_key")
         res = _default_ai_scanner.test_connection(api_key=api_key)
         self._send_json_response(res)
+
+    def handle_get_vulnerabilities_scan(self) -> None:
+        findings = _default_vuln_scanner.scan_all()
+        score = _default_vuln_scanner.calculate_security_score()
+        out = []
+        for f in findings:
+            out.append({
+                "vuln_id": f.vuln_id,
+                "category": f.category.value,
+                "severity": f.severity.value,
+                "title": f.title,
+                "description": f.description,
+                "affected_item": f.affected_item,
+                "cve_cwe": f.cve_cwe,
+                "remediation": f.remediation,
+                "can_auto_fix": f.can_auto_fix,
+                "is_fixed": f.is_fixed,
+            })
+        self._send_json_response({
+            "security_score": score,
+            "total_flaws": len(findings),
+            "critical_count": sum(1 for f in findings if f.severity == ThreatSeverity.CRITICAL),
+            "high_count": sum(1 for f in findings if f.severity == ThreatSeverity.HIGH),
+            "medium_count": sum(1 for f in findings if f.severity == ThreatSeverity.MEDIUM),
+            "findings": out,
+        })
+
+    def handle_post_vulnerabilities_remediate(self, body: Dict[str, Any]) -> None:
+        vuln_id = body.get("vuln_id")
+        if not vuln_id:
+            self._send_json_response({"error": "Missing 'vuln_id'"}, status=HTTPStatus.BAD_REQUEST)
+            return
+
+        success, msg = _default_vuln_scanner.remediate_vulnerability(vuln_id)
+        self._send_json_response({"success": success, "message": msg, "vuln_id": vuln_id})
 
 
 class PulseGuardAPIServer:

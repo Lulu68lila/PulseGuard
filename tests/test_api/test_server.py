@@ -195,3 +195,18 @@ def test_api_ai_scan_endpoint(api_server, tmp_path: Path):
     assert data["success"] is True
     assert "verdict" in data
     assert "confidence_score" in data
+
+
+def test_api_vulnerability_endpoints(api_server) -> None:
+    # 1. GET /api/vulnerabilities/scan
+    status, data, _ = make_request("GET", "/api/vulnerabilities/scan")
+    assert status == 200
+    assert "security_score" in data
+    assert "findings" in data
+    assert isinstance(data["findings"], list)
+
+    # 2. POST /api/vulnerabilities/remediate with dummy
+    rem_status, rem_data, _ = make_request("POST", "/api/vulnerabilities/remediate", {"vuln_id": "VULN-DUMMY"})
+    assert rem_status == 200
+    assert rem_data["vuln_id"] == "VULN-DUMMY"
+    assert "success" in rem_data

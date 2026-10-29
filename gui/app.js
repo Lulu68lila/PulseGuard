@@ -1,5 +1,5 @@
 /**
- * PulseGuard Total Security — Bitdefender Edition & NVIDIA Nemotron AI Controller.
+ * PulseGuard Total Security — Modern Cybersecurity & NVIDIA Nemotron AI Controller.
  * Communicates with the local Python REST API on http://127.0.0.1:48201.
  */
 
@@ -115,14 +115,32 @@ function setupDashboardActions() {
     }
   });
 
-  // 4. VPN simulated action
+  // 4. Analyse des Vulnérabilités & Failles Système
+  document.getElementById('card-vuln-scan')?.addEventListener('click', () => {
+    document.querySelector('.nav-item[data-tab="protection"]')?.click();
+    setTimeout(() => {
+      const vulnPanel = document.getElementById('pane-vuln-inspection');
+      if (vulnPanel) {
+        vulnPanel.scrollIntoView({ behavior: 'smooth' });
+        runVulnerabilityAudit();
+      }
+    }, 150);
+  });
+
+  // 5. VPN simulated action
   document.getElementById('card-vpn')?.addEventListener('click', () => {
     showBottomLeftNotification('PulseGuard VPN', 'Tunnel chiffré WireGuard activé. Votre adresse IP est masquée.', 'safe');
   });
 
-  // 5. Safepay simulated action
+  // 6. Safepay simulated action
   document.getElementById('card-safepay')?.addEventListener('click', () => {
     showBottomLeftNotification('PulseGuard Safepay', 'Environnement bancaire étanche initialisé en mémoire isolée.', 'safe');
+  });
+
+  // Footer run quick scan
+  document.getElementById('footer-run-quick')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    triggerScanWorkflow('quick');
   });
 }
 
@@ -132,6 +150,19 @@ function setupProtectionControls() {
     e.preventDefault();
     const section = document.getElementById('scanner-section-container');
     section.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  document.getElementById('link-open-vuln')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const vulnPanel = document.getElementById('pane-vuln-inspection');
+    if (vulnPanel) {
+      vulnPanel.scrollIntoView({ behavior: 'smooth' });
+      runVulnerabilityAudit();
+    }
+  });
+
+  document.getElementById('btn-run-vuln-scan')?.addEventListener('click', () => {
+    runVulnerabilityAudit();
   });
 
   document.getElementById('link-launch-ai-scan')?.addEventListener('click', async (e) => {
@@ -846,3 +877,120 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+// ================= REAL-TIME SYSTEM VULNERABILITY AUDIT & REMEDIATION =================
+async function runVulnerabilityAudit() {
+  const btn = document.getElementById('btn-run-vuln-scan');
+  const tbody = document.getElementById('vuln-results-tbody');
+  const badgeScore = document.getElementById('vuln-score-badge');
+  const critCountEl = document.getElementById('vuln-crit-count');
+  const highCountEl = document.getElementById('vuln-high-count');
+  const medCountEl = document.getElementById('vuln-med-count');
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner" style="display:inline-block;width:12px;height:12px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:6px;"></span> Audit en cours...`;
+  }
+
+  tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Analyse en cours des failles Windows, UAC, clés de registre, services et ports réseau...</td></tr>`;
+  appendLog('VULN_SCAN', "Démarrage de l'audit complet des failles et de la posture de sécurité système...", 'info');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/vulnerabilities/scan`);
+    const data = await res.json();
+
+    const score = data.security_score ?? 100;
+    badgeScore.textContent = `Score Sécurité : ${score}/100`;
+    badgeScore.className = 'vuln-score-pill ' + (score >= 80 ? '' : score >= 50 ? 'warning' : 'danger');
+
+    critCountEl.textContent = data.critical_count ?? 0;
+    highCountEl.textContent = data.high_count ?? 0;
+    medCountEl.textContent = data.medium_count ?? 0;
+
+    const findings = data.findings || [];
+    if (findings.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color:var(--bd-green);font-weight:600;">✓ Aucune faille de sécurité ou mauvaise configuration détectée. Votre système est sain.</td></tr>`;
+      showBottomLeftNotification('Système Sain', 'Audit terminé : Aucune vulnérabilité système détectée.', 'safe');
+      appendLog('VULN_SCAN', "Audit terminé : 0 faille détectée. Score: 100/100.", 'info');
+    } else {
+      tbody.innerHTML = '';
+      findings.forEach((f) => {
+        const tr = document.createElement('tr');
+        const sevClass = f.severity === 'CRITICAL' ? 'crit' : f.severity === 'HIGH' ? 'danger' : 'warning';
+        const actionHtml = f.can_auto_fix
+          ? `<button class="btn-remediate-fix" onclick="remediateVulnerability('${escapeHtml(f.vuln_id)}', this)">Corriger</button>`
+          : `<span style="font-size:0.75rem;color:var(--text-dim);">Manuel requis</span>`;
+
+        tr.innerHTML = `
+          <td><span class="threat-badge ${sevClass}">${escapeHtml(f.severity)}</span></td>
+          <td>
+            <div style="font-weight:600;color:#fff;">${escapeHtml(f.title)}</div>
+            <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px;">${escapeHtml(f.description)}</div>
+          </td>
+          <td><code style="font-size:0.75rem;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;">${escapeHtml(f.affected_item)}</code></td>
+          <td><span style="font-size:0.75rem;color:var(--bd-blue);">${escapeHtml(f.cve_cwe)}</span></td>
+          <td style="text-align:right;">${actionHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const notifyType = data.critical_count > 0 ? 'threat' : 'warning';
+      showBottomLeftNotification(
+        'Failles Système Détectées',
+        `Audit terminé : ${findings.length} vulnérabilité(s) trouvée(s). Score: ${score}/100.`,
+        notifyType
+      );
+      appendLog('VULN_SCAN', `Audit terminé : ${findings.length} vulnérabilité(s) identifiées. Score: ${score}/100.`, notifyType);
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color:var(--bd-red);">Erreur lors de l'audit : ${escapeHtml(err.message)}</td></tr>`;
+    showBottomLeftNotification('Erreur Audit', 'Impossible de contacter le moteur d\'analyse des vulnérabilités.', 'threat');
+    appendLog('VULN_SCAN', `Échec audit vulnérabilités : ${err.message}`, 'threat');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:6px;"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Auditer les failles`;
+    }
+  }
+}
+
+async function remediateVulnerability(vulnId, btnElement) {
+  if (!vulnId) return;
+  if (btnElement) {
+    btnElement.disabled = true;
+    btnElement.textContent = 'Correction...';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/vulnerabilities/remediate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vuln_id: vulnId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (btnElement) {
+        btnElement.className = 'btn-remediate-fixed';
+        btnElement.textContent = '✓ Corrigé';
+      }
+      showBottomLeftNotification('Faille Corrigée', data.message || 'La vulnérabilité a été résolue.', 'safe');
+      appendLog('VULN_REMEDIATION', `Succès remédiation [${vulnId}] : ${data.message}`, 'safe');
+    } else {
+      if (btnElement) {
+        btnElement.disabled = false;
+        btnElement.textContent = 'Échec';
+      }
+      showBottomLeftNotification('Échec Correction', data.message || 'Impossible de corriger automatiquement.', 'threat');
+      appendLog('VULN_REMEDIATION', `Échec remédiation [${vulnId}] : ${data.message}`, 'threat');
+    }
+  } catch (err) {
+    if (btnElement) {
+      btnElement.disabled = false;
+      btnElement.textContent = 'Erreur';
+    }
+    showBottomLeftNotification('Erreur Remédiation', err.message, 'threat');
+  }
+}
+
+window.remediateVulnerability = remediateVulnerability;
+window.runVulnerabilityAudit = runVulnerabilityAudit;

@@ -75,6 +75,158 @@ class SignatureDatabase:
             ),
         )
 
+        # 4. Known Real-World Malware Family Hash Signatures
+        known_malware_hashes: List[Tuple[str, str, str, ThreatSeverity, str]] = [
+            (
+                "ed01ebf830c1dd025704d7c58f5dd642f6e6178d80640f8d879b756302f7b83f",
+                "Ransomware.Win32.WannaCry.M",
+                "ransomware",
+                ThreatSeverity.CRITICAL,
+                "WannaCryptor ransomware payload exploiting SMBv1 MS17-010 EternalBlue.",
+            ),
+            (
+                "f6bcfad089694ecbc5e840a1b24bf059714ab1cb25dc012a6fe1a1d1e44321b3",
+                "Ransomware.Win64.LockBit.3",
+                "ransomware",
+                ThreatSeverity.CRITICAL,
+                "LockBit 3.0 / Black enterprise ransomware locker payload.",
+            ),
+            (
+                "8a8f7c9e0cfd137f8d689b91e9f1a0e10e66d9fa24d858e99ef3d7bc01b54a78",
+                "Ransomware.Win32.Ryuk.A",
+                "ransomware",
+                ThreatSeverity.CRITICAL,
+                "Ryuk targeted big-game enterprise ransomware executable.",
+            ),
+            (
+                "152e057f975dd49ae37e69c733ee2a99e74d1a49f57ebff110d70eb0e9dcf4e0",
+                "Trojan.Win32.Emotet.Gen",
+                "trojan",
+                ThreatSeverity.CRITICAL,
+                "Emotet modular banking Trojan and multi-stage dropper.",
+            ),
+            (
+                "3ab832158013e2f495574c86b24559868f7b7ea2687c7e5fd6068897fa1f1d17",
+                "Backdoor.Win64.CobaltStrike.Beacon",
+                "backdoor",
+                ThreatSeverity.CRITICAL,
+                "Cobalt Strike command-and-control stealth stager beacon.",
+            ),
+            (
+                "a35b1fbf4cf49ee9b578fa98a66a1f8bb2e8fa4868a8dc4e34e5a953a94a282f",
+                "Coinminer.Win64.XMRig.Gen",
+                "cryptominer",
+                ThreatSeverity.HIGH,
+                "XMRig silent Monero cryptocurrency mining payload.",
+            ),
+            (
+                "4b437299a4c029a67dc2df53be38686d1bf5f43ef74945d8b85bbf48f2191928",
+                "Infostealer.Win32.RedLine.C",
+                "infostealer",
+                ThreatSeverity.CRITICAL,
+                "RedLine credential and cryptocurrency wallet information harvester.",
+            ),
+            (
+                "7c85854746f31bf2256dfdb8cf1b44ec06efb086e4e207fe7283626e25dc39b8",
+                "Spyware.Win32.AgentTesla.Generic",
+                "spyware",
+                ThreatSeverity.CRITICAL,
+                "AgentTesla keylogger and clipboard/browser data exfiltration agent.",
+            ),
+            (
+                "93c68383f9fb5c1f074d26210f9252c803301a24d8e87459f2f812581600f7e4",
+                "Hacktool.Win64.Mimikatz.Release",
+                "hacktool",
+                ThreatSeverity.HIGH,
+                "Mimikatz credential extraction and LSASS ticket dumper.",
+            ),
+            (
+                "2b8219669528d2d2a4e9b7b993309a63c6c06a9d701e9a7e651e44b82bc0e854",
+                "Backdoor.Win32.AsyncRAT.Payload",
+                "rat",
+                ThreatSeverity.CRITICAL,
+                "AsyncRAT remote access trojan and surveillance agent.",
+            ),
+        ]
+
+        for h, name, ttype, sev, det in known_malware_hashes:
+            self.add_hash_signature(
+                h,
+                ThreatInfo(
+                    threat_name=name,
+                    threat_type=ttype,
+                    severity=sev,
+                    rule_matched=f"SIG_{ttype.upper()}_{name.split('.')[-1].upper()}",
+                    file_hash=h,
+                    details=det,
+                ),
+            )
+
+        # 5. High-Impact Real-World Byte Signatures
+        known_byte_patterns: List[Tuple[bytes, str, str, ThreatSeverity, str, str]] = [
+            (
+                b"sekurlsa::logonpasswords",
+                "Hacktool.Win32.Mimikatz.LsaDump",
+                "hacktool",
+                ThreatSeverity.CRITICAL,
+                "SIG_BYTE_MIMIKATZ_SEKURLSA",
+                "Mimikatz command for extracting cleartext passwords and hashes from LSASS memory.",
+            ),
+            (
+                b"c99shell",
+                "Webshell.Script.C99",
+                "webshell",
+                ThreatSeverity.CRITICAL,
+                "SIG_BYTE_WEBSHELL_C99",
+                "C99 PHP backdoor management console for remote server control.",
+            ),
+            (
+                b"r57shell",
+                "Webshell.Script.R57",
+                "webshell",
+                ThreatSeverity.CRITICAL,
+                "SIG_BYTE_WEBSHELL_R57",
+                "R57 PHP remote command execution backdoor shell.",
+            ),
+            (
+                b"WSO 2.5",
+                "Webshell.Script.WSO",
+                "webshell",
+                ThreatSeverity.CRITICAL,
+                "SIG_BYTE_WEBSHELL_WSO",
+                "WSO (Web Shell by Orb) server takeover shell.",
+            ),
+            (
+                b"AmsiScanBuffer",
+                "Evasion.Win32.AmsiPatchReference",
+                "evasion",
+                ThreatSeverity.HIGH,
+                "SIG_BYTE_AMSI_BUFFER_PATCH",
+                "Reference to Antimalware Scan Interface (AMSI) buffer patch.",
+            ),
+            (
+                b"stratum+tcp://",
+                "Coinminer.Network.StratumMiningProtocol",
+                "cryptominer",
+                ThreatSeverity.HIGH,
+                "SIG_BYTE_STRATUM_MINER_POOL",
+                "Embedded cryptocurrency stratum mining pool connection string.",
+            ),
+        ]
+
+        for pat, name, ttype, sev, rule, det in known_byte_patterns:
+            self.add_byte_pattern(
+                pat,
+                ThreatInfo(
+                    threat_name=name,
+                    threat_type=ttype,
+                    severity=sev,
+                    rule_matched=rule,
+                    file_hash="",
+                    details=det,
+                ),
+            )
+
     def add_hash_signature(self, sha256_hash: str, threat: ThreatInfo) -> None:
         """Add a SHA-256 hash detection rule to the database."""
         self._hash_signatures[sha256_hash.lower()] = threat

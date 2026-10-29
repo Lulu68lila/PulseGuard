@@ -25,6 +25,12 @@ SUSPICIOUS_SCRIPT_PATTERNS: List[Tuple[re.Pattern, str, ThreatSeverity, str]] = 
         "HEUR_VSSADMIN_DELETE_SHADOWS",
     ),
     (
+        re.compile(rb"wmic(\.exe)?\s+shadowcopy\s+delete", re.IGNORECASE),
+        "Heuristic.Ransomware.WmicShadowCopyDeletion",
+        ThreatSeverity.CRITICAL,
+        "HEUR_WMIC_DELETE_SHADOWS",
+    ),
+    (
         re.compile(rb"bcdedit(\.exe)?\s+/set\s+.*(recoveryenabled\s+no|bootstatuspolicy\s+ignoreallfailures)", re.IGNORECASE),
         "Heuristic.Ransomware.BootRecoveryDisabler",
         ThreatSeverity.CRITICAL,
@@ -35,6 +41,72 @@ SUSPICIOUS_SCRIPT_PATTERNS: List[Tuple[re.Pattern, str, ThreatSeverity, str]] = 
         "Heuristic.Ransomware.BackupCatalogWiper",
         ThreatSeverity.CRITICAL,
         "HEUR_WBADMIN_DELETE_CATALOG",
+    ),
+    (
+        re.compile(rb"fsutil(\.exe)?\s+usn\s+deletejournal", re.IGNORECASE),
+        "Heuristic.Ransomware.UsnJournalWiper",
+        ThreatSeverity.CRITICAL,
+        "HEUR_FSUTIL_DELETE_JOURNAL",
+    ),
+    (
+        re.compile(rb"set-mppreference\s+.*-disablerealtimemonitoring\s+(\$true|1)", re.IGNORECASE),
+        "Heuristic.Evasion.DisableRealtimeMonitoring",
+        ThreatSeverity.CRITICAL,
+        "HEUR_DEFENDER_DISABLE_REALTIME",
+    ),
+    (
+        re.compile(rb"(sc(\.exe)?|net(\.exe)?)\s+stop\s+(windefend|mpssvc|wuauserv)", re.IGNORECASE),
+        "Heuristic.Evasion.StopSecurityServices",
+        ThreatSeverity.CRITICAL,
+        "HEUR_STOP_SECURITY_SERVICES",
+    ),
+    (
+        re.compile(rb"taskkill(\.exe)?\s+.*(/f\s+.*)?/im\s+msmpeng\.exe", re.IGNORECASE),
+        "Heuristic.Evasion.KillAntivirusProcess",
+        ThreatSeverity.CRITICAL,
+        "HEUR_KILL_MSMPENG",
+    ),
+    (
+        re.compile(rb"\[ref\]\.assembly\.gettype\(['\"]system\.management\.automation\.amsiutils['\"]\)", re.IGNORECASE),
+        "Heuristic.Evasion.AmsiBypassReflection",
+        ThreatSeverity.HIGH,
+        "HEUR_AMSI_BYPASS_REFLECTION",
+    ),
+    (
+        re.compile(rb"amsiinitfailed\s*=\s*\$true", re.IGNORECASE),
+        "Heuristic.Evasion.AmsiInitFailedPatch",
+        ThreatSeverity.HIGH,
+        "HEUR_AMSI_INIT_FAILED_PATCH",
+    ),
+    (
+        re.compile(rb"certutil(\.exe)?\s+.*(-urlcache|-split|-f)\s+https?://", re.IGNORECASE),
+        "Heuristic.LOLBin.CertutilDownloadCradle",
+        ThreatSeverity.HIGH,
+        "HEUR_CERTUTIL_DOWNLOAD",
+    ),
+    (
+        re.compile(rb"bitsadmin(\.exe)?\s+/transfer\s+", re.IGNORECASE),
+        "Heuristic.LOLBin.BitsadminDownloadCradle",
+        ThreatSeverity.HIGH,
+        "HEUR_BITSADMIN_DOWNLOAD",
+    ),
+    (
+        re.compile(rb"mshta(\.exe)?\s+(https?://|vbscript:|javascript:)", re.IGNORECASE),
+        "Heuristic.LOLBin.MshtaRemoteExecution",
+        ThreatSeverity.HIGH,
+        "HEUR_MSHTA_REMOTE_EXEC",
+    ),
+    (
+        re.compile(rb"regsvr32(\.exe)?\s+.*(/s\s+)?(/u\s+)?/i:https?://", re.IGNORECASE),
+        "Heuristic.LOLBin.Regsvr32Squiblydoo",
+        ThreatSeverity.HIGH,
+        "HEUR_REGSVR32_SQUIBLYDOO",
+    ),
+    (
+        re.compile(rb"rundll32(\.exe)?\s+.*comsvcs\.dll.*minidump", re.IGNORECASE),
+        "Heuristic.CredentialAccess.LsassComsvcsDump",
+        ThreatSeverity.CRITICAL,
+        "HEUR_COMSVCS_LSASS_DUMP",
     ),
     (
         re.compile(rb"powershell(\.exe)?\s+.*-(enc|encodedcommand)\s+[A-Za-z0-9+/=]{20,}", re.IGNORECASE),
@@ -53,6 +125,24 @@ SUSPICIOUS_SCRIPT_PATTERNS: List[Tuple[re.Pattern, str, ThreatSeverity, str]] = 
         "Heuristic.Dropper.IEXDownloadCradle",
         ThreatSeverity.HIGH,
         "HEUR_IEX_DOWNLOAD_CRADLE",
+    ),
+    (
+        re.compile(rb"new-object\s+system\.net\.sockets\.tcpclient", re.IGNORECASE),
+        "Heuristic.Backdoor.PowerShellReverseShell",
+        ThreatSeverity.CRITICAL,
+        "HEUR_PS_REVERSE_SHELL",
+    ),
+    (
+        re.compile(rb"nc(\.exe)?\s+.*-e\s+(cmd|powershell|sh|bash)", re.IGNORECASE),
+        "Heuristic.Backdoor.NetcatCmdBinding",
+        ThreatSeverity.CRITICAL,
+        "HEUR_NETCAT_REVERSE_SHELL",
+    ),
+    (
+        re.compile(rb"eval\s*\(\s*(base64_decode|gzinflate|str_rot13)\s*\(", re.IGNORECASE),
+        "Heuristic.Webshell.ObfuscatedEval",
+        ThreatSeverity.CRITICAL,
+        "HEUR_PHP_OBFUSCATED_WEBSHELL",
     ),
 ]
 
@@ -169,20 +259,23 @@ class HeuristicAnalyzer:
         return None
 
     def _check_pe_anomalies(self, file_bytes: bytes, file_hash: str) -> Optional[ThreatInfo]:
-        """Inspect PE header for writable and executable (W+X) sections."""
+        """Deeply inspect PE header for W+X sections, packer artifacts, and injection imports."""
         if len(file_bytes) < 512 or file_bytes[:2] != b"MZ":
             return None
 
         try:
             import pefile  # optional / dynamic import
             pe = pefile.PE(data=file_bytes, fast_load=True)
+
+            # 1. Section Characteristics & Suspicious Names
+            known_packer_sections = {".upx0", ".upx1", ".aspack", ".fsg", ".themida", ".vmp0", ".mpress1"}
             for section in pe.sections:
-                # IMAGE_SCN_MEM_EXECUTE (0x20000000) and IMAGE_SCN_MEM_WRITE (0x80000000)
                 characteristics = getattr(section, "Characteristics", 0)
                 is_writable = bool(characteristics & 0x80000000)
                 is_executable = bool(characteristics & 0x20000000)
+                section_name = section.Name.decode("utf-8", errors="ignore").strip("\x00").lower()
+
                 if is_writable and is_executable:
-                    section_name = section.Name.decode("utf-8", errors="ignore").strip("\x00")
                     return ThreatInfo(
                         threat_name="Heuristic.PE.WritableExecutableSection",
                         threat_type="pe_anomaly",
@@ -191,6 +284,41 @@ class HeuristicAnalyzer:
                         file_hash=file_hash,
                         details=f"PE section '{section_name}' has both write and execute permissions (W+X).",
                     )
+
+                if section_name in known_packer_sections:
+                    return ThreatInfo(
+                        threat_name="Heuristic.PE.KnownPackerSignature",
+                        threat_type="packed_pe",
+                        severity=ThreatSeverity.MEDIUM,
+                        rule_matched="HEUR_PE_KNOWN_PACKER_SECTION",
+                        file_hash=file_hash,
+                        details=f"Known packer/obfuscator section name '{section_name}' detected.",
+                    )
+
+            # 2. Suspicious Import Address Table (IAT) Combinations
+            try:
+                pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY["IMAGE_DIRECTORY_ENTRY_IMPORT"]])
+                if hasattr(pe, "DIRECTORY_ENTRY_IMPORT"):
+                    imported_funcs = set()
+                    for entry in pe.DIRECTORY_ENTRY_IMPORT:
+                        for imp in entry.imports:
+                            if imp.name:
+                                imported_funcs.add(imp.name.decode("utf-8", errors="ignore").lower())
+
+                    # Process Injection Primitives
+                    injection_trio = {"virtualallocex", "writeprocessmemory", "createremotethread"}
+                    if injection_trio.issubset(imported_funcs):
+                        return ThreatInfo(
+                            threat_name="Heuristic.PE.ProcessInjectionPrimitives",
+                            threat_type="pe_anomaly",
+                            severity=ThreatSeverity.CRITICAL,
+                            rule_matched="HEUR_PE_INJECTION_TRIO",
+                            file_hash=file_hash,
+                            details="PE imports classic process injection trio (VirtualAllocEx, WriteProcessMemory, CreateRemoteThread).",
+                        )
+            except Exception:
+                pass
+
         except Exception:
             # If pefile fails or format is corrupt, do not crash scanner
             pass
